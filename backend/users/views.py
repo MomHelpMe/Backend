@@ -13,6 +13,7 @@ from .serializers import (
 )
 from login.views import decode_jwt
 from drf_yasg.utils import swagger_auto_schema
+from game.onlineConsumers import OnlineConsumer
 
 
 class UserDetailView(APIView):
@@ -47,6 +48,16 @@ class UserDetailView(APIView):
         # Delete the JWT cookie
         response = Response({"message": "Logged out successfully"})
         response.delete_cookie("jwt")
+
+        user_id = decode_jwt(request).get("id")
+        try:
+            if user_id in OnlineConsumer.online_user_list:
+                OnlineConsumer.online_user_list.remove(user_id)
+                print(f"User {user_id} removed. Online user list: {OnlineConsumer.online_user_list}")
+            else:
+                print(f"User {user_id} not found in the online user list.")
+        except Exception as e:
+            print(f"Error while logging out: {e}")
         return response
 
     def delete(self, request):

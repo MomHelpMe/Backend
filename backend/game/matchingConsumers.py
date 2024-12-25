@@ -7,30 +7,61 @@ from game.srcs.GameMap import GameMap
 import jwt
 from django.conf import settings
 from channels.exceptions import DenyConnection
+from django.shortcuts import get_object_or_404
+from users.models import User, Game
+from asgiref.sync import sync_to_async
+from django.utils import timezone
 
 SCREEN_HEIGHT = 750
 SCREEN_WIDTH = 1250
-MAX_SCORE = 150
+MAX_SCORE = 10
+
+
+@sync_to_async
+def get_user_nicknames(user1, user2):
+    user1_nickname = "Unknown"
+    user2_nickname = "Unknown"
+
+    # Check user1
+    if User.objects.filter(user_id=user1).exists():
+        user1_nickname = User.objects.get(user_id=user1).nickname
+    else:
+        print(f"User with user_id={user1} does NOT exist.")
+
+    # Check user2
+    if User.objects.filter(user_id=user2).exists():
+        user2_nickname = User.objects.get(user_id=user2).nickname
+    else:
+        print(f"User with user_id={user2} does NOT exist.")
+
+    print("user1_nickname:", user1_nickname, "user2_nickname:", user2_nickname)
+    return user1_nickname, user2_nickname
 
 
 class MatchingGameState:
-    def __init__(self, user1, user2):
-        print("initializing game state!")
-        self.user = [user1, user2]
-        self.user_authenticated = [False, False]
-        self.map = GameMap()
-        self.left_bar = Bar(0, Bar.X_GAP, SCREEN_HEIGHT // 2 - Bar.HEIGHT // 2, 0)
-        self.right_bar = Bar(
-            1,
-            SCREEN_WIDTH - Bar.WIDTH - Bar.X_GAP,
-            SCREEN_HEIGHT // 2 - Bar.HEIGHT // 2,
-            SCREEN_WIDTH - Bar.WIDTH,
-        )
-        self.left_ball = Ball(0, SCREEN_HEIGHT, SCREEN_WIDTH, self.left_bar)
-        self.right_ball = Ball(1, SCREEN_HEIGHT, SCREEN_WIDTH, self.right_bar)
-        self.score = [0, 0]
-        self.player = ["player1", "player2"]
-        self.penalty_time = [0, 0]
+    async def initialize(self, user1, user2):
+        try:
+            self.user = [user1, user2]
+            self.user_authenticated = [False, False]
+            self.map = GameMap()
+            self.left_bar = Bar(0, Bar.X_GAP, SCREEN_HEIGHT // 2 - Bar.HEIGHT // 2, 0)
+            self.right_bar = Bar(
+                1,
+                SCREEN_WIDTH - Bar.WIDTH - Bar.X_GAP,
+                SCREEN_HEIGHT // 2 - Bar.HEIGHT // 2,
+                SCREEN_WIDTH - Bar.WIDTH,
+            )
+            self.left_ball = Ball(0, SCREEN_HEIGHT, SCREEN_WIDTH, self.left_bar)
+            self.right_ball = Ball(1, SCREEN_HEIGHT, SCREEN_WIDTH, self.right_bar)
+            self.score = [0, 0]
+            print("user1:", user1, "user2:", user2)
+            user1_nickname, user2_nickname = await get_user_nicknames(user1, user2)
+            print("user1_nickname:", user1_nickname, "user2_nickname:", user2_nickname)
+            self.player = [user1_nickname, user2_nickname]
+            self.penalty_time = [0, 0]
+            print("initializing game state finished successfully!")
+        except Exception as e:
+            print("Error in MatchingGameState initialization:", e)
 
 
 class MatchingGameConsumer(AsyncWebsocketConsumer):
@@ -42,6 +73,7 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = self.room_name
         self.authenticated = False
+        self.start_time = timezone.now()
 
         await self.accept()
 
@@ -56,6 +88,7 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
                 await self.close(code=4001)
                 return
             self.authenticated = True
+            self.my_uid = 0
 
             # Join room group after successful authentication
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -82,7 +115,7 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
             state = MatchingGameConsumer.game_states[self.room_group_name]
 
             # Update the bar position based on the action
-            if bar == "left":
+            if bar == "left" and self.user_index == 0:
                 if action == "move_up":
                     state.left_bar.move_up(Bar.SPEED)
                 elif action == "move_down":
@@ -91,7 +124,7 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
                     state.left_bar.pull()
                 elif action == "release":
                     state.left_bar.set_release()
-            elif bar == "right":
+            elif bar == "right" and self.user_index == 1:
                 if action == "move_up":
                     state.right_bar.move_up(Bar.SPEED)
                 elif action == "move_down":
@@ -214,6 +247,8 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
 
     async def send_game_result(self, winner):
         state = MatchingGameConsumer.game_states[self.room_group_name]
+
+        await self.save_game_result(state, winner)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -222,6 +257,44 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
                 "winner": winner,
             },
         )
+    
+    @sync_to_async
+    def save_game_result(self, state, winner):
+        try:
+            user1_obj = User.objects.get(user_id=state.user[0])
+        except User.DoesNotExist:
+            user1_obj = None
+        try:
+            user2_obj = User.objects.get(user_id=state.user[1])
+        except User.DoesNotExist:
+            user2_obj = None
+
+        score1, score2 = state.score
+
+        game = Game.objects.create(
+            game_type="PvP",  
+            user1=user1_obj,
+            user2=user2_obj,
+            score1=score1,
+            score2=score2,
+            start_timestamp=self.start_time,
+            end_timestamp=timezone.now(),
+        )
+
+        if winner == 0:
+            if user1_obj:
+                user1_obj.win += 1
+                user1_obj.save()
+            if user2_obj:
+                user2_obj.lose += 1
+                user2_obj.save()
+        else:
+            if user2_obj:
+                user2_obj.win += 1
+                user2_obj.save()
+            if user1_obj:
+                user1_obj.lose += 1
+                user1_obj.save()
 
     async def game_result_message(self, event):
         score = event["score"]

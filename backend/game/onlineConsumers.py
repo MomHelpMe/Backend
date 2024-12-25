@@ -18,6 +18,7 @@ class OnlineConsumer(AsyncWebsocketConsumer):
         while True:
             await asyncio.sleep(2)
             if len(cls.matching_queue) >= 2:
+                print("2 users in queue")
                 await cls.start_game()
 
     @classmethod
@@ -25,13 +26,11 @@ class OnlineConsumer(AsyncWebsocketConsumer):
         user1 = cls.matching_queue.pop(0)
         user2 = cls.matching_queue.pop(0)
 
-        # Create a unique room name for the game
         room_name = f"{user1.uid}_{user2.uid}"
 
-        # Initialize game state for the room
-        MatchingGameConsumer.game_states[room_name] = MatchingGameState(
-            user1.uid, user2.uid
-        )
+        game_state = MatchingGameState()
+        await game_state.initialize(user1.uid, user2.uid)  # 비동기 초기화
+        MatchingGameConsumer.game_states[room_name] = game_state
         MatchingGameConsumer.client_counts[room_name] = 2
 
         await user1.send(
@@ -44,12 +43,10 @@ class OnlineConsumer(AsyncWebsocketConsumer):
         print(f"Users {user1.uid} and {user2.uid} moved to game room: {room_name}")
 
     async def connect(self):
-        # Wait for authentication before joining room group
         self.uid = None
         self.authenticated = False
         await self.accept()
 
-        # 매칭 task가 없으면 시작
         if OnlineConsumer.matching_task is None:
             OnlineConsumer.matching_task = asyncio.create_task(
                 OnlineConsumer.start_matching_task()
@@ -114,8 +111,11 @@ class OnlineConsumer(AsyncWebsocketConsumer):
             )
 
     async def disconnect(self, close_code):
-        # Leave room group
-        if self.authenticated:
-            OnlineConsumer.online_user_list.remove(self.uid)
-            await self.leave_matching()
-            print("Online user list: ", OnlineConsumer.online_user_list)
+        try:
+            if self.uid in OnlineConsumer.online_user_list:
+                OnlineConsumer.online_user_list.remove(self.uid)
+                print(f"Disconnected user {self.uid}. Updated list: {OnlineConsumer.online_user_list}")
+            else:
+                print(f"User {self.uid} not found in the online user list.")
+        except Exception as e:
+            print(f"Error during disconnect: {e}")
