@@ -127,7 +127,7 @@ x				} else {
 
 	setEvent() {
 		this.addEvent('click', '#goBack', () => {
-			window.history.back();
+			changeUrl("/main");
 		});
 
 		this.addEvent('click', '.opNick', (event) => {

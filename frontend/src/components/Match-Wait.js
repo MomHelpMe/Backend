@@ -51,7 +51,7 @@ export class WaitForMatch extends Component {
 
 	setEvent() {
 		this.addEvent('click', '#goBack', (event) => {
-			window.history.back();
+			changeUrl("/main", false);
 		});
 
 		const handleSocketClose = (e) => {

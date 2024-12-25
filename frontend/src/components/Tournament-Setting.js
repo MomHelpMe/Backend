@@ -77,7 +77,7 @@ export class TournamentSetting extends Component {
 
 	setEvent() {
 		this.addEvent('click', '#goBack', (event) => {
-			window.history.back();
+			changeUrl("/main");
 		});
 
 		this.addEvent('click', '#tournament-nick-error-button', (event) => {
