@@ -10,18 +10,32 @@ export class TournamentSetting extends Component {
 		if (!payload) this.uid = null;
 		else this.uid = payload.id;
 
-		// fetch(){
-		//	tournament history 조회
-		//}
+		fetch("https://localhost:443/api/game-history/tournament", {
+			method: "GET",
+			credentials: "include", // 쿠키 포함
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error(`Failed to fetch tournament history: ${response.status}`);
+			}
+			return response.json();
+		})
+		.then(data => {
+			this.games = data.games; // 서버에서 받아온 데이터 구조에 맞게 설정
+		})
+		.catch(error => {
+			console.error("Error fetching tournament history:", error);
+			this.games = {}; // 오류 발생 시 기본값 설정
+		});
 
-		this.games = {
-			"09/02": '{ "game1": {"Seonjo": 2, "Michang": 1}, "game2": {"Jiko": 3, "Jaehejun": 2}, "game3": {"Seonjo": 2, "Jiko": 3} }',
-			"10/02": '{ "game1": {"Jaehejun": 1, "Seonjo": 2}, "game2": {"Michang": 2, "Seunan": 1}, "game3": {"Seonjo": 2, "Michang": 3} }',
-			"10/12": '{ "game1": {"Michang": 2, "Jiko": 1}, "game2": {"Seonjo": 3, "Seunan": 2}, "game3": {"Michang": 1, "Seonjo": 3} }',
-			"10/25": '{ "game1": {"Jaehejun": 2, "Seunan": 3}, "game2": {"Michang": 3, "Seonjo": 2}, "game3": {"Seunan": 1, "Michang": 2} }',
-			"11/12": '{ "game1": {"Jiko": 2, "Jaehejun": 1}, "game2": {"Seunan": 3, "Michang": 2}, "game3": {"Jiko": 2, "Seunan": 3} }',
-			"12/25": '{ "game1": {"Michang": 2, "Seunan": 3}, "game2": {"Jiko": 3, "Seonjo": 2}, "game3": {"Seunan": 1, "Jiko": 2} }',
-		};
+		// this.games = {
+		// 	"09/02": '{ "game1": {"Seonjo": 2, "Michang": 1}, "game2": {"Jiko": 3, "Jaehejun": 2}, "game3": {"Seonjo": 2, "Jiko": 3} }',
+		// 	"10/02": '{ "game1": {"Jaehejun": 1, "Seonjo": 2}, "game2": {"Michang": 2, "Seunan": 1}, "game3": {"Seonjo": 2, "Michang": 3} }',
+		// 	"10/12": '{ "game1": {"Michang": 2, "Jiko": 1}, "game2": {"Seonjo": 3, "Seunan": 2}, "game3": {"Michang": 1, "Seonjo": 3} }',
+		// 	"10/25": '{ "game1": {"Jaehejun": 2, "Seunan": 3}, "game2": {"Michang": 3, "Seonjo": 2}, "game3": {"Seunan": 1, "Michang": 2} }',
+		// 	"11/12": '{ "game1": {"Jiko": 2, "Jaehejun": 1}, "game2": {"Seunan": 3, "Michang": 2}, "game3": {"Jiko": 2, "Seunan": 3} }',
+		// 	"12/25": '{ "game1": {"Michang": 2, "Seunan": 3}, "game2": {"Jiko": 3, "Seonjo": 2}, "game3": {"Seunan": 1, "Jiko": 2} }',
+		// };
 		
 		for (let date in this.games) {
 			this.games[date] = JSON.parse(this.games[date]);

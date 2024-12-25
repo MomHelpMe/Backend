@@ -55,12 +55,38 @@ export class GameResultPage extends Component {
 					    !(parsedGame1.winner === parsedGame3.winner && parsedGame2.winner === parsedGame3.loser)) {
 							changeUrl("/main/tournament");
 					}
-					changeUrl("/main/tournament");
-
+					// fetch
+					const payload = {
+						game_info: JSON.stringify({
+							game1: parsedGame1,
+							game2: parsedGame2,
+							game3: parsedGame3,
+						})
+					};
+					console.log("payload: ");
+					console.log(JSON.stringify(payload,null,2));
+					fetch("https://localhost:443/api/game-history/tournament", {
+						method: 'POST',
+						credentials: 'include', // 쿠키를 포함하여 요청
+						headers: {
+						  'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(payload)
+					})
+					.then(response => {
+						if (!response.ok) {
+							throw new Error('Failed to send tournament results');
+						}
+						changeUrl("/main/tournament");
+					})
+					.catch(error => {
+						console.error("Error sending tournament results:", error);
+						changeUrl("/");
+					});
 				} else {
 					changeUrl("/main/tournament");
 				}
-			}else {
+			} else {
 				changeUrl("/main", false);
 			}			
 		});
