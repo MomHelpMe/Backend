@@ -1006,6 +1006,7 @@ div#opImg {
 
 
 img#opImg {
+	margin-left: 15%;
 	object-fit: cover;
 	border-radius: 10px;
 	width: 40%;
@@ -1033,13 +1034,13 @@ div#matchScore {
 }
 
 span#myScorewin {
-	font-size: 30px;
+	font-size: 25px;
 	font-weight: 700;
 	color:rgb(20, 74, 188);
 }
 
 span#myScorelose {
-	font-size: 30px;
+	font-size: 25px;
 	font-weight: 700;
 	color:rgb(187, 23, 23)
 }
@@ -1052,7 +1053,7 @@ span#vsSign {
 }
 
 span#opScore {
-	font-size: 30px;
+	font-size: 25px;
 	font-weight: 700;
 }
 
