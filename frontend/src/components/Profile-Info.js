@@ -12,21 +12,24 @@ export class ProfileInfo extends Component {
 				winText: "Win",
 				loseText: "Lose",
 				minText: "min",
-				editText: "edit"
+				editText: "edit",
+				dateText: "Date"
 			},
 			1: {
 				headText: "프로필",
 				winText: "승리",
 				loseText: "패배",
 				minText: "분",
-				editText: "수정"
+				editText: "수정",
+				dateText: "날짜"
 			},
 			2: {
 				headText: "プロフィール",
 				winText: "勝ち",
 				loseText: "負け",
 				minText: "分",
-				editText: "編集"
+				editText: "編集",
+				dateText: "日付"
 			}
 		};
 		this.translations = languages[this.props.lan.value];
@@ -119,7 +122,7 @@ x				} else {
 	}
 
 	mounted() {
-		new MatchList(document.querySelector("ul#matches"), { matches: this.state.games, minText: this.translations.minText });
+		new MatchList(document.querySelector("ul#matches"), { matches: this.state.games, minText: this.translations.minText, dateText: this.translations.dateText });
 		this.drawBackgroundCircle();
 		this.drawProgressCircle();
 		this.updatePercentage();

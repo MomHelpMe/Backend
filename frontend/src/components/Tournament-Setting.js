@@ -5,10 +5,60 @@ import { changeUrl } from "../core/router.js";
 
 export class TournamentSetting extends Component {
 
+	translate() {
+		const languages = {
+			0: {
+				gameText: ["Game"],
+				historyText: ["History"],
+				startText: ["S T A R T"],
+				title: ["Tournament"],
+				centerText: ["TAKE ON THE CHALLENGE"],
+				winnerText: ["Winner"],
+				TBDText: ["TBD"],
+				nickText1: ["nickname1"],	
+				nickText2: ["nickname2"],	
+				nickText3: ["nickname3"],	
+				nickText4: ["nickname4"],	
+			},
+			1: { // 한국어
+				gameText: ["게임"],
+				historyText: ["기록"],
+				startText: ["시 작"],
+				title: ["토너먼트"],
+				centerText: ["도전에 맞서라"],
+				winnerText: ["승자"],
+				TBDText: ["미정"],
+				nickText1: ["닉네임1"],	
+				nickText2: ["닉네임2"],	
+				nickText3: ["닉네임3"],	
+				nickText4: ["닉네임4"],	
+			},
+			2: { // 일본어
+				gameText: ["ゲーム"],
+				historyText: ["履歴"],
+				startText: ["ス タ ー ト"],
+				title: ["トーナメント"],
+				centerText: ["挑戦を受けて立て"],
+				winnerText: ["勝者"],
+				TBDText: ["未定"],
+				nickText1: ["ニックネーム1"],	
+				nickText2: ["ニックネーム2"],	
+				nickText3: ["ニックネーム3"],	
+				nickText4: ["ニックネーム4"],	
+			}
+		};
+	
+		this.translations = languages[this.props.lan.value];
+	
+	}
+
 	template () {
+		
 		const payload = parseJWT();
 		if (!payload) this.uid = null;
 		else this.uid = payload.id;
+
+		const translations = this.translations;
 
 		fetch("https://localhost:443/api/game-history/tournament", {
 			method: "GET",
@@ -39,13 +89,13 @@ export class TournamentSetting extends Component {
 
 		return `
 			<div id="tournament-box">
-				<div id="tournament-game-menu">Game</div>
-				<div id="tournament-history-menu">History</div>
-				<div id="tournament-title">Tournament</div>
+				<div id="tournament-game-menu">${translations.gameText}</div>
+				<div id="tournament-history-menu">${translations.historyText}</div>
+				<div id="tournament-title">${translations.title}</div>
 				<img src="/img/back.png" id="goBack"></img>
 				<div id="tournament-main-body">
 					<img src="/img/tournament.png" id="tournament-img"></img>
-					<div id="tournament-challenge-text">Take on the challenge</div>
+					<div id="tournament-challenge-text">${translations.centerText}</div>
 				</div>
 				<div id="tournament-game-body">
 					<div id="tournament-nick-error">
@@ -56,27 +106,27 @@ export class TournamentSetting extends Component {
 						<img id="crown" src="/img/crown.png"></img>
 					</div>
 					<div id="tournament-players">
-						<div id="tournament-nick">Winner</div>
+						<div id="tournament-nick">${translations.winnerText}</div>
 					</div>
 					<div id="tournament-lines">
 						<div id="tournament-line1"></div>
 					</div>
 					<div id="tournament-players">
-						<div id="tournament-nick">TBD</div>
-						<div id="tournament-nick">TBD</div>
+						<div id="tournament-nick">${translations.TBDText}</div>
+						<div id="tournament-nick">${translations.TBDText}</div>
 					</div>
 					<div id="tournament-lines">
 						<div id="tournament-line2"></div>
 						<div id="tournament-line2"></div>
 					</div>
 					<div id="tournament-players">
-						<input class="tournament-input" autocomplete="off" id="tournament-nick1" maxlength="8" placeholder="nickname1"></input>
-						<input class="tournament-input" autocomplete="off" id="tournament-nick2" maxlength="8" placeholder="nickname2"></input>
+						<input class="tournament-input" autocomplete="off" id="tournament-nick1" maxlength="8" placeholder="${translations.nickText1}"></input>
+						<input class="tournament-input" autocomplete="off" id="tournament-nick2" maxlength="8" placeholder="${translations.nickText2}"></input>
 						<div id="tournament-blank"></div>
-						<input class="tournament-input" autocomplete="off" id="tournament-nick3" maxlength="8" placeholder="nickname3"></input>
-						<input class="tournament-input" autocomplete="off" id="tournament-nick4" maxlength="8" placeholder="nickname4"></input>
+						<input class="tournament-input" autocomplete="off" id="tournament-nick3" maxlength="8" placeholder="${translations.nickText3}"></input>
+						<input class="tournament-input" autocomplete="off" id="tournament-nick4" maxlength="8" placeholder="${translations.nickText4}"></input>
 					</div>
-					<div id="tournament-start-button">S T A R T</div>
+					<div id="tournament-start-button">${translations.startText}</div>
 				</div>
 				<div id="tournament-history-body"></div>
 			</div>

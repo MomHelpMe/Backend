@@ -22,10 +22,29 @@ export class WaitForMatch extends Component {
 		return {};
 	}
 
+	translate() {
+		const languages = {
+			0: {
+				mathcingText: ["Finding Your Match..."],
+			},
+			1: {
+				mathcingText: ["게임 상대를 찾고있습니다..."],
+			},
+			2: {
+				mathcingText: ["ピッタリの相手を探してるよ..."],
+			}
+		};
+	
+		this.translations = languages[this.props.lan.value];
+	
+	}
+
 	template () {
+		const translations = this.translations;
+
 		return `
 			<div id="match-box">
-				<div id="match-title">Finding Your Match...</div>
+				<div id="match-title">${translations.mathcingText}</div>
 				<img src="/img/back.png" id="goBack"></img>
 				<div id="matchingRotate">
 					<div id="red-box">

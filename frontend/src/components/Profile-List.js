@@ -4,6 +4,7 @@ export class MatchList extends Component {
 
 	template () {
 		const { matches } = this.props;
+		const translations = this.translations;
 		if (!matches) return "";
 		return `
 		  ${matches.map(element => {
@@ -18,7 +19,7 @@ export class MatchList extends Component {
 			return `
 				<li class="matchComponent" id="${element.is_win ?"win":"lose"}Type">
 					<div id="matchTime">
-						<span id="date">Date</span>
+						<span id="date">${this.props.dateText}</span>
 						<div id="startTime">${month}/${day} ${hours}:${minutes}</div>
 						<div id="playTime">${element.playtime}${this.props.minText}</div>
 					</div>

@@ -68,7 +68,7 @@ export class TournamentHistory extends Component {
 			</div>
 			<div id="tournament-history-button-box">
 				<div id="tournament-prev-button"></div>
-				<div id="tournament-game-name">${date} - Game</div>
+				<div id="tournament-game-name">${date}</div>
 				<div id="tournament-next-button"></div>
 			</div>
 		`;

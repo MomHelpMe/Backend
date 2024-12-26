@@ -3,11 +3,31 @@ import { changeUrl } from "../core/router.js";
 
 export class GameResultPage extends Component {
 
+	translate() {
+		const languages = {
+			0: {
+				winnerText: ["Winner is "],
+			},
+
+			1: {
+				winnerText: ["승자 "],
+			},
+
+			2: {
+				winnerText: ["勝者 "],
+			}
+		};
+	
+		this.translations = languages[this.props.lan.value];
+	
+	}
+
 	template () {
+		const translations = this.translations;
 		return `
 			<div id="game-result-box">
 				<div id="game-winner-box">
-					<div id="game-winner">Winner is ${this.props.winner}!!!</div>
+					<div id="game-winner">${translations.winnerText}${this.props.winner}!!!</div>
 					<div id="game-result-button">OK</div>
 				</div>
 			</div>
