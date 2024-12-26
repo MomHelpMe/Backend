@@ -1,6 +1,7 @@
 import { Component } from "../core/Component.js";
 import { getCookie } from "../core/jwt.js";
-import { socketList } from "../app.js"
+import { socketList } from "../app.js";
+import { changeUrl } from "../core/router.js";
 
 export class GameCore extends Component {
 	constructor($el, props) {
@@ -336,11 +337,10 @@ export class GameCore extends Component {
 				this.gameSocket.close();
 				socketList.pop();
 				if (data.winner === 0) {
-					alert(`${PLAYER[0]} wins!`);
+					changeUrl(`/game/${this.props.uid}/result/${PLAYER[0]}`);
 				} else {
-					alert(`${PLAYER[1]} wins!`);
+					changeUrl(`/game/${this.props.uid}/result/${PLAYER[1]}`);
 				}
-				changeUrl('/main', false);
 			}
 		};
 

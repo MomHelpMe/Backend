@@ -337,11 +337,10 @@ export class GameMatchingCore extends Component {
 				this.gameSocket.close();
 				socketList.pop();
 				if (data.winner === 0) {
-					alert(`${PLAYER[0]} wins!`);
+					changeUrl(`/game/${this.props.uid}/result/${PLAYER[0]}`);
 				} else {
-					alert(`${PLAYER[1]} wins!`);
+					changeUrl(`/game/${this.props.uid}/result/${PLAYER[1]}`);
 				}
-				changeUrl('/main', false);
 			}
 		};
 
