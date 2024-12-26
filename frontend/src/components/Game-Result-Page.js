@@ -55,16 +55,25 @@ export class GameResultPage extends Component {
 					    !(parsedGame1.winner === parsedGame3.winner && parsedGame2.winner === parsedGame3.loser)) {
 							changeUrl("/main/tournament");
 					}
-					// fetch
+
 					const payload = {
 						game_info: JSON.stringify({
-							game1: parsedGame1,
-							game2: parsedGame2,
-							game3: parsedGame3,
+							"date": `${new Date().getMonth() + 1}/${new Date().getDate()}`, 
+							game1: {
+								[parsedNicknames.nick1]: parsedGame1.score1,
+								[parsedNicknames.nick2]: parsedGame1.score2
+							},
+							game2: {
+								[parsedNicknames.nick3]: parsedGame2.score1,
+								[parsedNicknames.nick4]: parsedGame2.score2
+							},
+							game3: {
+								[parsedGame1.winner]: parsedGame3.score1,
+								[parsedGame2.winner]: parsedGame3.score2
+							}
 						})
 					};
-					console.log("payload: ");
-					console.log(JSON.stringify(payload,null,2));
+
 					fetch("https://localhost:443/api/game-history/tournament", {
 						method: 'POST',
 						credentials: 'include', // 쿠키를 포함하여 요청
@@ -77,13 +86,14 @@ export class GameResultPage extends Component {
 						if (!response.ok) {
 							throw new Error('Failed to send tournament results');
 						}
-						changeUrl("/main/tournament");
 					})
 					.catch(error => {
 						console.error("Error sending tournament results:", error);
 						changeUrl("/");
 					});
-				} else {
+					changeUrl("/main/tournament");
+				} 
+				else {
 					changeUrl("/main/tournament");
 				}
 			} else {
