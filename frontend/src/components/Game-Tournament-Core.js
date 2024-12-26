@@ -1,9 +1,9 @@
 import { Component } from "../core/Component.js";
 import { getCookie } from "../core/jwt.js";
-import { socketList } from "../app.js";
+import { socketList } from "../app.js"
 import { changeUrl } from "../core/router.js";
 
-export class GameCore extends Component {
+export class GameTournamentCore extends Component {
 	constructor($el, props) {
 		super($el, props);
 	}
@@ -319,7 +319,7 @@ export class GameCore extends Component {
 		this.gameSocket.onmessage = (e) => {
 			const data = JSON.parse(e.data);
 			if (data.type === 'initialize_game') {
-				initializeGame(data);
+				initializeGame(data, this.props.player1, this.props.player2);
 				drawGame();
 			} else if (data.type === 'update_game_state') {
 				leftBar.targetX = data.left_bar_x;
@@ -336,10 +336,27 @@ export class GameCore extends Component {
 			} else if (data.type === 'game_result') {
 				this.gameSocket.close();
 				socketList.pop();
-				if (data.winner === 0) {
-					changeUrl(`/game/${this.props.uid}/result/${PLAYER[0]}`);
+				console.log("winner!!");
+				console.log(data.winner);
+				const winner = data.winner === 0 ? this.props.player1 : this.props.player2;
+				const loser = data.winner === 0 ? this.props.player2 : this.props.player1;
+				if (this.props.game === 1) {
+					const game1 = { winner: winner, loser: loser, 
+									score1: data.score[0], score2: data.score[1]};
+					localStorage.setItem('game1', JSON.stringify(game1));
+					changeUrl(`/game/tournament/${this.props.uid}/result/${winner}`);
+				} else if (this.props.game === 2) {
+					const game2 = { winner: winner, loser: loser, 
+									score1: data.score[0], score2: data.score[1]};
+					localStorage.setItem('game2', JSON.stringify(game2));
+					changeUrl(`/game/tournament/${this.props.uid}/result/${winner}`);
+				} else if (this.props.game === 3) {
+					const game3 = { winner: winner, loser: loser, 
+									score1: data.score[0], score2: data.score[1]};
+					localStorage.setItem('game3', JSON.stringify(game3));
+					changeUrl(`/game/tournament/${this.props.uid}/result/${winner}`);
 				} else {
-					changeUrl(`/game/${this.props.uid}/result/${PLAYER[1]}`);
+					changeUrl('/main/tournament', false);
 				}
 			}
 		};
@@ -393,7 +410,7 @@ export class GameCore extends Component {
 			score.draw();
 		}
 
-		function initializeGame(data) {
+		function initializeGame(data, player1, player2) {
 			SCREEN_HEIGHT = data.screen_height;
 			SCREEN_WIDTH = data.screen_width;
 			LEFT_BAR_X = data.left_bar_x;
@@ -404,7 +421,7 @@ export class GameCore extends Component {
 			BAR_WIDTH = data.bar_width;
 			BAR_X_GAP = data.bar_x_gap;
 			BALL_RADIUS = data.ball_radius;
-			PLAYER = data.player;
+			PLAYER = [ player1, player2 ];
 			MAX_SCORE = data.max_score;
 			canvas.width = SCREEN_WIDTH;
 			canvas.height = SCREEN_HEIGHT;

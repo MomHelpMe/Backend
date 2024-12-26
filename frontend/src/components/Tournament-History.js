@@ -11,10 +11,10 @@ export class TournamentHistory extends Component {
 		const { gameInfo } = this.props;
 
 		const game = Object.values(gameInfo)[this.state.idx];
-		const day = Object.keys(gameInfo)[this.state.idx];
 		this.size = Object.keys(gameInfo).length - 1;
 
 		// 게임 1의 데이터
+		const date = game.date;
 		const game1_nick1 = Object.keys(game.game1)[0];
 		const game1_score1 = game.game1[game1_nick1];
 		const game1_nick2 = Object.keys(game.game1)[1];
@@ -68,7 +68,7 @@ export class TournamentHistory extends Component {
 			</div>
 			<div id="tournament-history-button-box">
 				<div id="tournament-prev-button"></div>
-				<div id="tournament-game-name">${day} - Game</div>
+				<div id="tournament-game-name">${date}</div>
 				<div id="tournament-next-button"></div>
 			</div>
 		`;

@@ -12,6 +12,7 @@ from .serializers import (
     FriendSerializer,
     FriendRequestSerializer,
 )
+from game.onlineConsumers import OnlineConsumer
 
 
 class UserDetailView(APIView):
@@ -47,6 +48,18 @@ class UserDetailView(APIView):
         # Delete the JWT cookie
         response = Response({"message": "Logged out successfully"})
         response.delete_cookie("jwt")
+
+        user_id = decode_jwt(request).get("id")
+        try:
+            if user_id in OnlineConsumer.online_user_list:
+                OnlineConsumer.online_user_list.remove(user_id)
+                print(
+                    f"User {user_id} removed. Online user list: {OnlineConsumer.online_user_list}"
+                )
+            else:
+                print(f"User {user_id} not found in the online user list.")
+        except Exception as e:
+            print(f"Error while logging out: {e}")
         return response
 
     def delete(self, request):
@@ -70,7 +83,9 @@ class LanguageView(APIView):
         user = get_object_or_404(User, pk=payload.get("id"))
         return Response({"language": user.language})
 
-    @swagger_auto_schema(request_body=LanguageSerializer, responses={200: LanguageSerializer()})
+    @swagger_auto_schema(
+        request_body=LanguageSerializer, responses={200: LanguageSerializer()}
+    )
     def put(self, request):
         payload = decode_jwt(request)
         if not payload:
@@ -128,7 +143,10 @@ class FriendDetailView(APIView):
 
         friend_user_id = serializer.validated_data["user_id"]
         if user.user_id == friend_user_id:
-            return Response({"error": "Cannot be friend with yourself"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Cannot be friend with yourself"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         friend_user = get_object_or_404(User, pk=friend_user_id)
 
         # 이미 존재하는 친구 관계 확인
@@ -136,7 +154,10 @@ class FriendDetailView(APIView):
             Friend.objects.filter(user1=user, user2=friend_user).exists()
             or Friend.objects.filter(user1=friend_user, user2=user).exists()
         ):
-            return Response({"error": "Friendship already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Friendship already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # 새로운 친구 관계 생성
         friend = Friend(user1=user, user2=friend_user)
@@ -159,12 +180,15 @@ class FriendDetailView(APIView):
         friend_user = get_object_or_404(User, pk=friend_user_id)
 
         # 이미 존재하는 친구 관계 확인
-        friend = Friend.objects.filter(user1=user, user2=friend_user) | Friend.objects.filter(
-            user1=friend_user, user2=user
-        )
+        friend = Friend.objects.filter(
+            user1=user, user2=friend_user
+        ) | Friend.objects.filter(user1=friend_user, user2=user)
 
         if not friend.exists():
-            return Response({"error": "Friendship does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Friendship does not exist"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         friend.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -205,7 +229,8 @@ def get_user(request, pk):
                 "op_score": op_score,
                 "is_win": my_score > op_score,
                 "start_timestamp": game.start_timestamp,
-                "playtime": (game.end_timestamp - game.start_timestamp).total_seconds() // 60,  # playtime in minutes
+                "playtime": (game.end_timestamp - game.start_timestamp).total_seconds()
+                // 60,  # playtime in minutes
             }
         )
 

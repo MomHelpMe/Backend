@@ -7,42 +7,73 @@ from game.srcs.GameMap import GameMap
 import jwt
 from django.conf import settings
 from channels.exceptions import DenyConnection
+from django.shortcuts import get_object_or_404
+from users.models import User, Game
+from asgiref.sync import sync_to_async
+from django.utils import timezone
 
 SCREEN_HEIGHT = 750
 SCREEN_WIDTH = 1250
-MAX_SCORE = 150
+MAX_SCORE = 10
 
 
-class GameState:
-    def __init__(self):
-        print("initializing game state!")
-        self.map = GameMap()
-        self.left_bar = Bar(0, Bar.X_GAP, SCREEN_HEIGHT // 2 - Bar.HEIGHT // 2, 0)
-        self.right_bar = Bar(
-            1,
-            SCREEN_WIDTH - Bar.WIDTH - Bar.X_GAP,
-            SCREEN_HEIGHT // 2 - Bar.HEIGHT // 2,
-            SCREEN_WIDTH - Bar.WIDTH,
-        )
-        self.left_ball = Ball(0, SCREEN_HEIGHT, SCREEN_WIDTH, self.left_bar)
-        self.right_ball = Ball(1, SCREEN_HEIGHT, SCREEN_WIDTH, self.right_bar)
-        self.score = [0, 0]
-        self.player = ["player1", "player2"]
-        self.penalty_time = [0, 0]
+@sync_to_async
+def get_user_nicknames(user1, user2):
+    user1_nickname = "Unknown"
+    user2_nickname = "Unknown"
+
+    # Check user1
+    if User.objects.filter(user_id=user1).exists():
+        user1_nickname = User.objects.get(user_id=user1).nickname
+    else:
+        print(f"User with user_id={user1} does NOT exist.")
+
+    # Check user2
+    if User.objects.filter(user_id=user2).exists():
+        user2_nickname = User.objects.get(user_id=user2).nickname
+    else:
+        print(f"User with user_id={user2} does NOT exist.")
+
+    print("user1_nickname:", user1_nickname, "user2_nickname:", user2_nickname)
+    return user1_nickname, user2_nickname
 
 
-class GameConsumer(AsyncWebsocketConsumer):
+class MatchingGameState:
+    async def initialize(self, user1, user2):
+        try:
+            self.user = [user1, user2]
+            self.user_authenticated = [False, False]
+            self.map = GameMap()
+            self.left_bar = Bar(0, Bar.X_GAP, SCREEN_HEIGHT // 2 - Bar.HEIGHT // 2, 0)
+            self.right_bar = Bar(
+                1,
+                SCREEN_WIDTH - Bar.WIDTH - Bar.X_GAP,
+                SCREEN_HEIGHT // 2 - Bar.HEIGHT // 2,
+                SCREEN_WIDTH - Bar.WIDTH,
+            )
+            self.left_ball = Ball(0, SCREEN_HEIGHT, SCREEN_WIDTH, self.left_bar)
+            self.right_ball = Ball(1, SCREEN_HEIGHT, SCREEN_WIDTH, self.right_bar)
+            self.score = [0, 0]
+            print("user1:", user1, "user2:", user2)
+            user1_nickname, user2_nickname = await get_user_nicknames(user1, user2)
+            print("user1_nickname:", user1_nickname, "user2_nickname:", user2_nickname)
+            self.player = [user1_nickname, user2_nickname]
+            self.penalty_time = [0, 0]
+            print("initializing game state finished successfully!")
+        except Exception as e:
+            print("Error in MatchingGameState initialization:", e)
+
+
+class MatchingGameConsumer(AsyncWebsocketConsumer):
     game_tasks = {}
     game_states = {}
     client_counts = {}
 
     async def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
-        self.room_group_name = f"game_{self.room_name}"
-        print(f"room_name: {self.room_name}")
-
-        # Wait for authentication before joining room group
+        self.room_group_name = self.room_name
         self.authenticated = False
+        self.start_time = timezone.now()
 
         await self.accept()
 
@@ -50,7 +81,6 @@ class GameConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         action = text_data_json["action"]
 
-        # print("text_data", text_data_json)
         if action == "authenticate":
             token = text_data_json.get("token")
             if not token or not self.authenticate(token):
@@ -58,34 +88,34 @@ class GameConsumer(AsyncWebsocketConsumer):
                 await self.close(code=4001)
                 return
             self.authenticated = True
+            self.my_uid = 0
 
             # Join room group after successful authentication
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
-            # Initialize game state for the room if it doesn't exist
-            if self.room_group_name not in GameConsumer.game_states:
-                print("new game!")
-                GameConsumer.game_states[self.room_group_name] = GameState()
-                GameConsumer.client_counts[self.room_group_name] = 0
-
-            GameConsumer.client_counts[self.room_group_name] += 1
-
-            # Send initialize game state to the client
+            # # Send initialize game state to the client
             await self.send_initialize_game()
 
-            # Start ball movement if not already running
-            if self.room_group_name not in GameConsumer.game_tasks:
-                GameConsumer.game_tasks[self.room_group_name] = asyncio.create_task(
-                    self.game_loop()
-                )
+            # Update authentication status in the game state
+            state = MatchingGameConsumer.game_states[self.room_group_name]
+            state.user_authenticated[self.user_index] = True
+
+            # Check if both users are authenticated, then start the game_loop
+            if all(state.user_authenticated):
+                # Start the game loop if not already started
+                if self.room_group_name not in MatchingGameConsumer.game_tasks:
+                    print("user_authenticated", state.user_authenticated)
+                    MatchingGameConsumer.game_tasks[self.room_group_name] = (
+                        asyncio.create_task(self.game_loop())
+                    )
         elif not self.authenticated:
             await self.close(code=4001)
         else:
             bar = text_data_json.get("bar")
-            state = GameConsumer.game_states[self.room_group_name]
+            state = MatchingGameConsumer.game_states[self.room_group_name]
 
             # Update the bar position based on the action
-            if bar == "left":
+            if bar == "left" and self.user_index == 0:
                 if action == "move_up":
                     state.left_bar.move_up(Bar.SPEED)
                 elif action == "move_down":
@@ -94,7 +124,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                     state.left_bar.pull()
                 elif action == "release":
                     state.left_bar.set_release()
-            elif bar == "right":
+            elif bar == "right" and self.user_index == 1:
                 if action == "move_up":
                     state.right_bar.move_up(Bar.SPEED)
                 elif action == "move_down":
@@ -112,21 +142,19 @@ class GameConsumer(AsyncWebsocketConsumer):
             # Decode JWT token
             decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             uid = decoded.get("id")
-            print(
-                f"uid: {uid}",
-                f"room_name: {self.room_name}",
-                str(uid) == str(self.room_name),
-            )
             # Check if uid matches the room_name
-            if str(uid) == str(self.room_name):
+            state = MatchingGameConsumer.game_states[self.room_group_name]
+            if str(uid) == str(state.user[0]):
+                self.user_index = 0
+                return True
+            elif str(uid) == str(state.user[1]):
+                self.user_index = 1
                 return True
             else:
                 return False
         except jwt.ExpiredSignatureError:
-            print("Token has expired")
             return False
         except jwt.InvalidTokenError:
-            print("Invalid token")
             return False
 
     async def disconnect(self, close_code):
@@ -136,18 +164,18 @@ class GameConsumer(AsyncWebsocketConsumer):
                 self.room_group_name, self.channel_name
             )
             # Decrease the client count for this room
-            if self.room_group_name in GameConsumer.client_counts:
-                GameConsumer.client_counts[self.room_group_name] -= 1
-                if GameConsumer.client_counts[self.room_group_name] <= 0:
-                    GameConsumer.game_tasks[self.room_group_name].cancel()
-                    del GameConsumer.game_tasks[self.room_group_name]
-                    del GameConsumer.game_states[self.room_group_name]
-                    del GameConsumer.client_counts[self.room_group_name]
+            if self.room_group_name in MatchingGameConsumer.client_counts:
+                MatchingGameConsumer.client_counts[self.room_group_name] -= 1
+                if MatchingGameConsumer.client_counts[self.room_group_name] <= 0:
+                    MatchingGameConsumer.game_tasks[self.room_group_name].cancel()
+                    del MatchingGameConsumer.game_tasks[self.room_group_name]
+                    del MatchingGameConsumer.game_states[self.room_group_name]
+                    del MatchingGameConsumer.client_counts[self.room_group_name]
             else:
-                GameConsumer.client_counts[self.room_group_name] = 0
+                MatchingGameConsumer.client_counts[self.room_group_name] = 0
 
     async def send_initialize_game(self):
-        state = GameConsumer.game_states[self.room_group_name]
+        state = MatchingGameConsumer.game_states[self.room_group_name]
         await self.send(
             text_data=json.dumps(
                 {
@@ -174,10 +202,11 @@ class GameConsumer(AsyncWebsocketConsumer):
         )
 
     async def game_loop(self):
+        print("!!Game loop started for", self.room_group_name)
         try:
             count = 0
             while True:
-                state = GameConsumer.game_states[self.room_group_name]
+                state = MatchingGameConsumer.game_states[self.room_group_name]
                 state.left_bar.update()
                 state.right_bar.update()
 
@@ -209,6 +238,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                         break
                 else:
                     await asyncio.sleep(0.00390625)
+                    # await asyncio.sleep(0.016)
                 count += 1
         except asyncio.CancelledError:
             # Handle the game loop cancellation
@@ -216,7 +246,9 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def send_game_result(self, winner):
-        state = GameConsumer.game_states[self.room_group_name]
+        state = MatchingGameConsumer.game_states[self.room_group_name]
+
+        await self.save_game_result(state, winner)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -225,6 +257,44 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "winner": winner,
             },
         )
+    
+    @sync_to_async
+    def save_game_result(self, state, winner):
+        try:
+            user1_obj = User.objects.get(user_id=state.user[0])
+        except User.DoesNotExist:
+            user1_obj = None
+        try:
+            user2_obj = User.objects.get(user_id=state.user[1])
+        except User.DoesNotExist:
+            user2_obj = None
+
+        score1, score2 = state.score
+
+        game = Game.objects.create(
+            game_type="PvP",  
+            user1=user1_obj,
+            user2=user2_obj,
+            score1=score1,
+            score2=score2,
+            start_timestamp=self.start_time,
+            end_timestamp=timezone.now(),
+        )
+
+        if winner == 0:
+            if user1_obj:
+                user1_obj.win += 1
+                user1_obj.save()
+            if user2_obj:
+                user2_obj.lose += 1
+                user2_obj.save()
+        else:
+            if user2_obj:
+                user2_obj.win += 1
+                user2_obj.save()
+            if user1_obj:
+                user1_obj.lose += 1
+                user1_obj.save()
 
     async def game_result_message(self, event):
         score = event["score"]
@@ -242,7 +312,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         )
 
     async def send_game_state(self):
-        state = GameConsumer.game_states[self.room_group_name]
+        state = MatchingGameConsumer.game_states[self.room_group_name]
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -272,7 +342,6 @@ class GameConsumer(AsyncWebsocketConsumer):
         right_ball_y = event["right_ball_y"]
         score = event["score"]
         penalty_time = event["penalty_time"]
-
         # Send the updated game state to the WebSocket
         await self.send(
             text_data=json.dumps(
@@ -286,7 +355,9 @@ class GameConsumer(AsyncWebsocketConsumer):
                     "left_ball_y": int(left_ball_y),
                     "right_ball_x": int(right_ball_x),
                     "right_ball_y": int(right_ball_y),
-                    "map_diff": GameConsumer.game_states[self.room_group_name].map.diff,
+                    "map_diff": MatchingGameConsumer.game_states[
+                        self.room_group_name
+                    ].map.diff,
                     "score": score,
                     "penalty_time": penalty_time,
                 }

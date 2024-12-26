@@ -63,7 +63,8 @@ export class GameDefault extends Component {
 			<div id="rightBG">
 				<div id="rightBar"></div>
 			</div>
-			<div id="game"></div>
+			<div id="game">
+			</div>
 		</div>
 		`;
 	}

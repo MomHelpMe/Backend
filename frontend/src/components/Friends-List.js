@@ -118,7 +118,7 @@ export class FriendsList extends Component {
 		});
 
 		this.addEvent('click', '#goBack', (event) => {
-			window.history.back();
+			changeUrl("/main");
 		});
 
 		this.addEvent('click', '.goProfile', (event) => {
