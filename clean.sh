@@ -11,8 +11,8 @@ if [ ! -z "$(docker ps -aq -f name=nginx)" ]; then
     docker rmi -f nginx > /dev/null 2>&1
 fi
 
-rm -rf backend/*/migrations backend/venv
-find . -type d -name "__pycache__" -exec rm -r {} \;
+rm -rf backend/*/migrations backend/venv backend/.env
+find . -type d -name "__pycache__" -exec rm -r {} +
 
 for d in backend/*/; do
     if [ "$d" == "backend/transcendence/" ]; then

@@ -1,14 +1,19 @@
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
-from django.core.cache import cache
 from django.shortcuts import redirect
+from django.core.cache import cache
+from django.core.mail import EmailMultiAlternatives
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from users.models import User
 from datetime import datetime, timedelta
+from requests.exceptions import RequestException, Timeout
 import requests
 import jwt
 import secrets
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(["GET"])
@@ -24,19 +29,18 @@ def login(request):
 def callback(request):
     code = request.data.get("code")
     if not code:
-        return Response(status=401)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     access_token = get_acccess_token(code)
     if not access_token:
-        return Response(status=401)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     user_data = get_user_info(access_token)
     if not user_data:
-        return Response(status=401)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     user, created = get_or_save_user(user_data)
-    # Test 위해서 True로 설정
-    # user.is_2FA = True
+
     if created:
         data = {"is_2FA": False}
     else:
@@ -44,7 +48,7 @@ def callback(request):
 
     token = generate_jwt(user, data)
 
-    response = Response(data, status=200)
+    response = Response(data, status=status.HTTP_200_OK)
     response.set_cookie("jwt", token, httponly=False, secure=True, samesite="LAX")
     return response
 
@@ -67,19 +71,35 @@ def get_acccess_token(code):
         response.raise_for_status()  # 200 OK를 받지 못하면 에러를 발생시킴
         return response.json().get("access_token")
     except requests.exceptions.RequestException as e:
-        print(f"Failed to get access token: {e}")
+        logger.error(f"Failed to get access token: {e}", exc_info=True)
+        logger.error(f"Response content: {e.response.content if e.response else 'No response'}")
         return None
 
 
 def get_user_info(access_token):
-    user_info_response = requests.get(settings.OAUTH_USER_INFO_URL, headers={"Authorization": f"Bearer {access_token}"})
-    if user_info_response.status_code == 200:
+    try:
+        user_info_response = requests.get(
+            settings.OAUTH_USER_INFO_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        )
+
+        if user_info_response.status_code != status.HTTP_200_OK:
+            return None
         return user_info_response.json()
-    return None
+
+    except Timeout:
+        # 요청이 타임아웃된 경우 처리
+        logger.error("Request timed out")
+        return None
+
+    except RequestException as e:
+        # 그 외 요청 실패 시 처리 (네트워크 문제, 잘못된 URL 등)
+        logger.error(f"Failed to get user info: {e}", exc_info=True)
+        return None
 
 
 def get_or_save_user(user_data):
-
     user_uid = user_data.get("id")
     nickname = user_data.get("login")
     email = user_data.get("email")
@@ -132,20 +152,21 @@ def decode_jwt(request):
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         return payload
     except jwt.ExpiredSignatureError:
-        print("JWT EXPIRED")
+        logger.log("JWT EXPIRED")
+        request.COOKIES.pop("jwt", None)
         return None
     except jwt.InvalidTokenError:
-        print("JWT INVALID")
+        logger.log("INVALID JWT")
+        request.COOKIES.pop("jwt", None)
         return None
 
 
 @api_view(["GET"])
 def send_2fa_email(request):
-
-    if not validate_jwt(request):
-        return Response(status=401)
-
     payload = decode_jwt(request)
+    if not payload:
+        return Response(status=status.status.HTTP_401_UNAUTHORIZED)
+
     user_id = payload.get("id")
     user_email = payload.get("email")
 
@@ -172,37 +193,22 @@ def send_2fa_email(request):
     message.attach_alternative(html_content, "text/html")
     message.send()
 
-    return Response(status=200)
-
-
-def validate_jwt(request):
-    try:
-        payload = decode_jwt(request)
-        if not payload:
-            return False
-        return True
-    except jwt.ExpiredSignatureError:
-        print("JWT EXPIRED")
-        return False
-    except jwt.InvalidTokenError:
-        print("JWT INVALID")
-        return False
+    return Response(status=status.HTTP_200_OK)
 
 
 def generate_otp(length=6):
     otp_code = "".join(secrets.choice("0123456789") for _ in range(length))
-    print("OTP_CODE : ", otp_code)
+    logger.info(f"Generated OTP: {otp_code}")
     return otp_code
 
 
 @api_view(["POST"])
 def verify_otp(request):
-    if not validate_jwt(request):
-        return Response(status=401)
+    payload = decode_jwt(request)
+    if not payload:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     input_otp = request.data.get("otp_code")
-
-    payload = decode_jwt(request)
     user_id = payload.get("id")
     user_email = payload.get("email")
 
@@ -213,11 +219,11 @@ def verify_otp(request):
         data = {"success": True}
         is_verified = True
         token = regenerate_jwt(user_id, user_email, is_verified)
-        response = Response(data, status=200)
+        response = Response(data, status=status.HTTP_200_OK)
         response.set_cookie("jwt", token, httponly=False, secure=True, samesite="LAX")
     else:
         data = {"success": False}
-        response = Response(data, status=200)
+        response = Response(data, status=status.HTTP_200_OK)
     return response
 
 
@@ -225,10 +231,10 @@ def verify_otp(request):
 def verify_jwt(request):
     payload = decode_jwt(request)
     if not payload:
-        return Response(status=401)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     is_verified = payload.get("is_verified")
     if is_verified == True:
-        return Response(status=200)
+        return Response(status=status.HTTP_200_OK)
     else:
-        return Response(status=401)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)

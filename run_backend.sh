@@ -3,6 +3,7 @@
 # TEST: 개발 시 로컬 실행용
 
 DOT_ENV=".env"
+ENV_DIR="venv"
 
 # Check if .env file exists
 if [ ! -f "$DOT_ENV" ]; then
@@ -28,19 +29,15 @@ if [ -z "$(docker ps -aq -f name=nginx)" ]; then
   docker run -d -p 443:443 --name nginx nginx
 fi
 
-# Check if the container is not running
+# Run the database server
 if [ -z "$(docker ps -aq -f name=postgres)" ]; then
+  sed -i '' 's/^DB_HOST=.*$/DB_HOST=localhost/' $DOT_ENV
   docker volume create db_data
   docker build -t postgres db/
   docker run -d -p 5432:5432 --name postgres --env-file $DOT_ENV -v db_data:/var/lib/postgresql/data postgres
 fi
 
-# Update the .env file for local development
-sed -i '' 's/^DB_HOST=.*$/DB_HOST=localhost/' $DOT_ENV
-
 cd backend
-
-ENV_DIR="venv"
 
 if [ ! -d "$ENV_DIR" ]; then
   python3.12 -m venv $ENV_DIR
@@ -87,6 +84,4 @@ if [ "$USER_EXISTS" = "False" ]; then
 fi
 
 echo "Starting development server..."
-# clear
-
 python3.12 manage.py runserver 0.0.0.0:8000

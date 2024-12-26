@@ -33,6 +33,7 @@ class Command(BaseCommand):
             Friend.objects.create(user1=user1, user2=user2)
 
         # Create games
+        current_time = timezone.now()
         for i in range(50):
             user1, user2 = random.sample(users, 2)
             user1_score = random.randint(0, 5)
@@ -51,8 +52,8 @@ class Command(BaseCommand):
                 user2=user2,
                 score1=user1_score,
                 score2=user2_score,
-                start_timestamp=timezone.now(),
-                end_timestamp=timezone.now() + timezone.timedelta(minutes=10),
+                start_timestamp=current_time + timezone.timedelta(minutes=i) - timezone.timedelta(minutes=60),
+                end_timestamp=current_time + timezone.timedelta(minutes=i) - timezone.timedelta(minutes=50),
             )
             user1.save()
             user2.save()
@@ -65,8 +66,8 @@ class Command(BaseCommand):
                 game_id1=game1,
                 game_id2=game2,
                 game_id3=game3,
-                start_timestamp=timezone.now(),
-                end_timestamp=timezone.now() + timezone.timedelta(minutes=30),
+                start_timestamp=current_time + timezone.timedelta(minutes=i) - timezone.timedelta(minutes=30),
+                end_timestamp=current_time + timezone.timedelta(minutes=i) - timezone.timedelta(minutes=10),
             )
 
         self.stdout.write(self.style.SUCCESS("Database successfully populated!"))

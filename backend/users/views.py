@@ -1,9 +1,10 @@
 from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from login.views import decode_jwt
+from drf_yasg.utils import swagger_auto_schema
 from .models import User, Friend, Game, Tournament
 from .serializers import (
     UserSerializer,
@@ -11,8 +12,6 @@ from .serializers import (
     FriendSerializer,
     FriendRequestSerializer,
 )
-from login.views import decode_jwt
-from drf_yasg.utils import swagger_auto_schema
 
 
 class UserDetailView(APIView):
@@ -23,7 +22,7 @@ class UserDetailView(APIView):
 
         user = get_object_or_404(User, pk=payload.get("id"))
         serializer = UserSerializer(user)
-        return JsonResponse(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=UserSerializer, responses={200: UserSerializer()})
     def put(self, request):
@@ -34,10 +33,11 @@ class UserDetailView(APIView):
         user = get_object_or_404(User, pk=payload.get("id"))
         # FIXME: is_online도 변경이 가능함 수정 필요
         serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         token = request.COOKIES.get("jwt")
@@ -56,7 +56,7 @@ class UserDetailView(APIView):
 
         user = get_object_or_404(User, pk=payload.get("id"))
         user.delete()
-        response = Response()
+        response = Response({"message": "User deleted successfully"})
         response.delete_cookie("jwt")
         return response
 
@@ -77,14 +77,13 @@ class LanguageView(APIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         user = get_object_or_404(User, pk=payload.get("id"))
-        print(request.data.get("language"))
         serializer = LanguageSerializer(user, data=request.data, partial=True)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FriendDetailView(APIView):
@@ -107,11 +106,11 @@ class FriendDetailView(APIView):
         try:
             friends = User.objects.filter(pk__in=friend_ids)
         except User.DoesNotExist:
-            return Response({"[]"}, status=status.HTTP_200_OK)
+            return Response({"[]"}, status=status.HTTP_404_NOT_FOUND)
 
         # 직렬화하여 JSON 응답으로 반환
         serializer = UserSerializer(friends, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         request_body=FriendRequestSerializer,
@@ -144,7 +143,7 @@ class FriendDetailView(APIView):
         friend.save()
 
         response_serializer = FriendSerializer(friend)
-        return JsonResponse(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
         request_body=FriendRequestSerializer,
@@ -160,7 +159,10 @@ class FriendDetailView(APIView):
         friend_user = get_object_or_404(User, pk=friend_user_id)
 
         # 이미 존재하는 친구 관계 확인
-        friend = Friend.objects.filter(user1=user, user2=friend_user)
+        friend = Friend.objects.filter(user1=user, user2=friend_user) | Friend.objects.filter(
+            user1=friend_user, user2=user
+        )
+
         if not friend.exists():
             return Response({"error": "Friendship does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -212,11 +214,11 @@ def get_user(request, pk):
     response_data["user"] = user_serializer.data
     response_data["games"] = games_data
 
-    return JsonResponse(response_data)
+    return Response(response_data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
 def get_user_list(request):
     users = User.objects.all()
     serializer = UserSerializer(users, many=True)
-    return JsonResponse(serializer.data, safe=False)
+    return Response(serializer.data, status=status.HTTP_200_OK)
