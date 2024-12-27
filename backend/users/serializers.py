@@ -20,7 +20,7 @@ class LanguageSerializer(serializers.ModelSerializer):
 class FriendSerializer(serializers.ModelSerializer):
     class Meta:
         model = Friend
-        fields = ["user1", "user2"]
+        fields = ["adder", "friend_user"]
 
 
 class FriendRequestSerializer(serializers.Serializer):

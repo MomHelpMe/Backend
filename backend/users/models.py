@@ -24,12 +24,11 @@ class User(models.Model):
 
 class Friend(models.Model):
     friend_id = models.AutoField(primary_key=True)
-    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="friends_as_user1")
-    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="friends_as_user2")
+    adder = models.ForeignKey(User, on_delete=models.CASCADE, related_name="friend_added")
+    friend_user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Friend: {self.user1.nickname} - {self.user2.nickname}"
-
+        return f"{self.adder.nickname} - {self.friend_user.nickname}"
 
 class Game(models.Model):
     game_id = models.AutoField(primary_key=True)
