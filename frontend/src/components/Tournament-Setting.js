@@ -2,10 +2,7 @@ import { Component } from "../core/Component.js";
 import { TournamentHistory } from "./Tournament-History.js";
 import { parseJWT } from "../core/jwt.js";
 import { changeUrl } from "../core/router.js";
-import dotenv from 'dotenv';
-
-dotenv.config();
-const host = process.env.HOST_ADDRESS;
+import host from "./load_host.js";
 
 export class TournamentSetting extends Component {
 

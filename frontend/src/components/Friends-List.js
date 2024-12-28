@@ -3,10 +3,7 @@ import { FriendsInfo } from "./Friends-Info.js";
 import { List } from "./List.js";
 import { changeUrl, parsePath } from "../core/router.js";
 import { Input } from "./Input.js";
-import dotenv from 'dotenv';
-
-dotenv.config();
-const host = process.env.HOST_ADDRESS;
+import host from "./load_host.js";
 
 export class FriendsList extends Component {
 

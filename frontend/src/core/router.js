@@ -13,10 +13,7 @@ import { GameTournament } from "../components/Game-Tournament.js";
 import { GameMatching } from "../components/Game-matching.js";
 import { Error } from "../components/Error.js";
 import { GameResult } from "../components/Game-Result.js";
-import dotenv from 'dotenv';
-
-dotenv.config();
-const host = process.env.HOST_ADDRESS;
+import host from "./load_host.js";
 
 export const createRoutes = (root) => {
 	return {

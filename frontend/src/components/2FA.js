@@ -2,10 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
-import dotenv from 'dotenv';
-
-dotenv.config();
-const host = process.env.HOST_ADDRESS;
+import host from "./load_host.js";
 
 export class TwoFA extends Component {
 	template() {

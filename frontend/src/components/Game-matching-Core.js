@@ -2,10 +2,7 @@ import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
 import { getCookie } from "../core/jwt.js";
 import { socketList } from "../app.js"
-import dotenv from 'dotenv';
-
-dotenv.config();
-const host = process.env.HOST_ADDRESS;
+import host from "./load_host.js";
 
 export class GameMatchingCore extends Component {
 	constructor($el, props) {

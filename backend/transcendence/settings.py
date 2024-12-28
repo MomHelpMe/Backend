@@ -38,7 +38,6 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 HOST_ADDRESS = os.getenv("HOST_ADDRESS")
 
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

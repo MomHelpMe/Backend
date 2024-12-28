@@ -1,9 +1,6 @@
 import { initializeRouter, createRoutes, changeUrl } from "./core/router.js";
 import { getCookie } from "./core/jwt.js";
-import dotenv from 'dotenv';
-
-dotenv.config();
-const host = process.env.HOST_ADDRESS;
+import host from "./load_host.js";
 
 class App {
 	app;

@@ -2,10 +2,7 @@ import { Component } from "../core/Component.js";
 import { List } from "./List.js";
 import { changeUrl } from "../core/router.js";
 import { parseJWT } from "../core/jwt.js";
-import dotenv from 'dotenv';
-
-dotenv.config();
-const host = process.env.HOST_ADDRESS;
+import host from "./load_host.js";
 
 export class Menu extends Component {
 	translate() {
