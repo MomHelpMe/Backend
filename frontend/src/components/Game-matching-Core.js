@@ -1,9 +1,9 @@
 import { Component } from "../core/Component.js";
-import { getCookie } from "../core/jwt.js";
-import { socketList } from "../app.js";
 import { changeUrl } from "../core/router.js";
+import { getCookie } from "../core/jwt.js";
+import { socketList } from "../app.js"
 
-export class GameCore extends Component {
+export class GameMatchingCore extends Component {
 	constructor($el, props) {
 		super($el, props);
 	}
@@ -13,8 +13,8 @@ export class GameCore extends Component {
 		this.gameSocket = new WebSocket(
 			'wss://'
 			+ "localhost:443"
-			+ '/ws/game/'
-			+ this.props.uid
+			+ '/ws/game/vs/'
+			+ this.props.room
 			+ '/'
 		);
 		socketList.push(this.gameSocket);

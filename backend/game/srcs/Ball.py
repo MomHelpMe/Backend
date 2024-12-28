@@ -4,12 +4,12 @@ from game.srcs.Bar import BarState
 RADIAN60 = np.pi / 3
 RADIAN20 = np.pi / 9
 COLLISION_IGNORE_FRAMES = 5  # 충돌 무시 프레임 수
-PENALTY_FRAMES = 50  # 페널티 프레임 수
+PENALTY_FRAMES = 500  # 페널티 프레임 수
 
 
 class Ball:
-    SPEED = 2
-    RADIUS = 10
+    SPEED = [1.75, 2.75, 3.75]
+    RADIUS = 14
 
     def __init__(self, id, screen_height, screen_width, bar):
         self.id = id
@@ -22,7 +22,7 @@ class Ball:
     def initialize(self, bar):
         self.x = bar.x + bar.width / 2 + (150 if self.id == 0 else -150)
         self.y = bar.y + bar.height / 2 + (1 if self.id == 0 else -1)
-        self.dx = -self.SPEED if self.id == 0 else self.SPEED
+        self.dx = -self.SPEED[0] if self.id == 0 else self.SPEED[0]
         self.dy = 0
         self.collision_timer = 0
         self.life = 0
@@ -30,15 +30,15 @@ class Ball:
     def move(self, bar):
         if self.penalty_timer > 0:
             self.penalty_timer -= 1
-            # print(self.penalty_timer)
             if self.penalty_timer == 0:
                 self.initialize(bar)
-            return
+            return self.penalty_timer // 10
 
         self.x += self.dx
         self.y += self.dy
         if self.collision_timer > 0:
             self.collision_timer -= 1
+        return self.penalty_timer // 10
 
     def check_bar_collision(self, bar):
         if self.collision_timer > 0 or self.penalty_timer > 0:
@@ -48,12 +48,11 @@ class Ball:
                 return
             if bar.id == 1 and bar.x > self.x + self.RADIUS:
                 return
-            speed = self.SPEED
+            speed = self.SPEED[0]
             if (bar.state == BarState.RELEASE):
-                speed *= bar.power / bar.max_power + 1
                 self.life = bar.get_ball_power()
-                self.x = bar.min_x + (bar.width if bar.id == 0 else 0) 
-                print("speed", speed)
+                speed = self.SPEED[self.life]
+                self.x = bar.min_x + (bar.width if bar.id == 0 else 0)
             # 바와의 충돌로 dx를 반전시키고, dy를 새로 계산
             relative_intersect_y = (bar.y + (bar.height // 2)) - self.y
             normalized_relative_intersect_y = relative_intersect_y / (
@@ -71,7 +70,7 @@ class Ball:
                 self.dx = abs(self.dx)
             self.collision_timer = COLLISION_IGNORE_FRAMES
 
-    def check_collision(self, game_map):
+    def check_collision(self, game_map, score):
         if self.penalty_timer > 0:
             return
         # 미래 위치 예측
@@ -85,10 +84,14 @@ class Ball:
         elif future_x - self.RADIUS <= -self.RADIUS * 10:
             self.x = -self.RADIUS * 5
             self.penalty_timer = PENALTY_FRAMES
+            if self.id == 1:
+                score[1] += 20
             return
         elif future_x + self.RADIUS >= self.screen_width + self.RADIUS * 10:
             self.x = self.screen_width + self.RADIUS * 5
             self.penalty_timer = PENALTY_FRAMES
+            if self.id == 0:
+                score[0] += 20
             return
 
         # 맵과의 충돌 검사
@@ -143,6 +146,7 @@ class Ball:
                 # 블록 상태 업데이트
                 new_value = 1 if current_value == 0 else 0
                 game_map.update(grid_x, grid_y, new_value)
+                score[self.id] += 1
 
                 # 충돌 타이머 설정
                 self.collision_timer = COLLISION_IGNORE_FRAMES

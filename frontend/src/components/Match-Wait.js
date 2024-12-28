@@ -1,12 +1,50 @@
 import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
+import { socketList } from "../app.js"
+
 
 export class WaitForMatch extends Component {
 
+	initState() {
+		if (socketList[0] !== undefined)
+		{
+			console.log("send enter-matching");
+			socketList[0].send(JSON.stringify({ 'action': 'enter-matching' }));
+			socketList[0].onmessage = (e) => {
+				const data = JSON.parse(e.data);
+				console.log(data);
+				if (data.action === 'start_game') {
+					console.log("start game on " + data.room_name);
+					changeUrl('/game/vs/' + data.room_name);
+				}
+			};
+		}
+		return {};
+	}
+
+	translate() {
+		const languages = {
+			0: {
+				mathcingText: ["Finding Your Match..."],
+			},
+			1: {
+				mathcingText: ["게임 상대를 찾고있습니다..."],
+			},
+			2: {
+				mathcingText: ["ピッタリの相手を探してるよ..."],
+			}
+		};
+	
+		this.translations = languages[this.props.lan.value];
+	
+	}
+
 	template () {
+		const translations = this.translations;
+
 		return `
 			<div id="match-box">
-				<div id="match-title">Finding Your Match...</div>
+				<div id="match-title">${translations.mathcingText}</div>
 				<img src="/img/back.png" id="goBack"></img>
 				<div id="matchingRotate">
 					<div id="red-box">
@@ -32,7 +70,14 @@ export class WaitForMatch extends Component {
 
 	setEvent() {
 		this.addEvent('click', '#goBack', (event) => {
-			window.history.back();
+			changeUrl("/main", false);
 		});
+
+		const handleSocketClose = (e) => {
+			socketList[0].send(JSON.stringify({ 'action': 'leave-matching' }));
+			window.removeEventListener('popstate', handleSocketClose);
+		}
+
+		window.addEventListener('popstate', handleSocketClose);
 	}
 }

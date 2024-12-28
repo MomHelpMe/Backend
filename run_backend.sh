@@ -40,7 +40,7 @@ else
 fi
 
 if [ ! -d "$ENV_DIR" ]; then
-  python3.12 -m venv $ENV_DIR
+  python3 -m venv $ENV_DIR
   echo "Virtual environment created at $ENV_DIR."
 else
   echo "Virtual environment already exists at $ENV_DIR."
@@ -49,11 +49,11 @@ fi
 source $ENV_DIR/bin/activate
 echo "Virtual environment activated."
 
-python3.12 -m pip install -q --upgrade pip
+python3 -m pip install -q --upgrade pip
 if [ -f "requirements.txt" ]; then
-  cnt=$(python3.12 -m pip freeze | grep -f requirements.txt | wc -l)
+  cnt=$(python3 -m pip freeze | grep -f requirements.txt | wc -l)
   if [ $cnt -lt $(cat requirements.txt | wc -l) ]; then
-      python3.12 -m pip install -q -r requirements.txt
+      python3 -m pip install -q -r requirements.txt
       echo "Installed packages from requirements.txt."
   else
     echo "Packages from requirements.txt are already installed."
@@ -64,15 +64,15 @@ else
 fi
 
 echo "Applying migrations..."
-python3.12 manage.py makemigrations
-python3.12 manage.py migrate
+python3 manage.py makemigrations
+python3 manage.py migrate
 
 # Create a superuser
 DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME
 DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD
 DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL
 
-USER_EXISTS=$(python3.12 manage.py shell -c "
+USER_EXISTS=$(python3 manage.py shell -c "
 from django.contrib.auth import get_user_model;
 User = get_user_model();
 print(User.objects.filter(username='admin').exists())
@@ -80,10 +80,10 @@ print(User.objects.filter(username='admin').exists())
 
 if [ "$USER_EXISTS" = "False" ]; then
   echo "Creating superuser..."
-  python3.12 manage.py createsuperuser --username $DJANGO_SUPERUSER_USERNAME --email $DJANGO_SUPERUSER_EMAIL --noinput || true
+  python3 manage.py createsuperuser --username $DJANGO_SUPERUSER_USERNAME --email $DJANGO_SUPERUSER_EMAIL --noinput || true
 fi
 
 echo "Starting development server..."
 # clear
 
-python3.12 manage.py runserver 0.0.0.0:8000
+python3 manage.py runserver 0.0.0.0:8000

@@ -13,6 +13,7 @@ from .serializers import (
 )
 from login.views import decode_jwt
 from drf_yasg.utils import swagger_auto_schema
+from game.onlineConsumers import OnlineConsumer
 
 
 class UserDetailView(APIView):
@@ -47,6 +48,16 @@ class UserDetailView(APIView):
         # Delete the JWT cookie
         response = Response({"message": "Logged out successfully"})
         response.delete_cookie("jwt")
+
+        user_id = decode_jwt(request).get("id")
+        try:
+            if user_id in OnlineConsumer.online_user_list:
+                OnlineConsumer.online_user_list.remove(user_id)
+                print(f"User {user_id} removed. Online user list: {OnlineConsumer.online_user_list}")
+            else:
+                print(f"User {user_id} not found in the online user list.")
+        except Exception as e:
+            print(f"Error while logging out: {e}")
         return response
 
     def delete(self, request):
@@ -92,25 +103,14 @@ class FriendDetailView(APIView):
         payload = decode_jwt(request)
         if not payload:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
         user = get_object_or_404(User, pk=payload.get("id"))
+        
+        # 단방향 친구 관계만 조회
+        friends = Friend.objects.filter(adder=user)
 
-        # 유저와 친구 상태인 유저 모델들을 모두 가져옴
-        friends_as_user1 = Friend.objects.filter(user1=user)
-        friends_as_user2 = Friend.objects.filter(user2=user)
-
-        # 친구 유저 ID 수집
-        friend_ids = set(friends_as_user1.values_list("user2", flat=True)) | set(
-            friends_as_user2.values_list("user1", flat=True)
-        )
-
-        # 친구 ID를 통해 친구 유저 정보 가져오기
-        try:
-            friends = User.objects.filter(pk__in=friend_ids)
-        except User.DoesNotExist:
-            return Response({"[]"}, status=status.HTTP_200_OK)
-
-        # 직렬화하여 JSON 응답으로 반환
-        serializer = UserSerializer(friends, many=True)
+        # 친구 정보 직렬화해 JSON 응답으로 반환
+        serializer = UserSerializer([friend.friend_user for friend in friends], many=True)
         return JsonResponse(serializer.data, safe=False)
 
     @swagger_auto_schema(
@@ -121,6 +121,7 @@ class FriendDetailView(APIView):
         payload = decode_jwt(request)
         if not payload:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
         user = get_object_or_404(User, pk=payload.get("id"))
 
         serializer = FriendRequestSerializer(data=request.data)
@@ -132,15 +133,12 @@ class FriendDetailView(APIView):
             return Response({"error": "Cannot be friend with yourself"}, status=status.HTTP_400_BAD_REQUEST)
         friend_user = get_object_or_404(User, pk=friend_user_id)
 
-        # 이미 존재하는 친구 관계 확인
-        if (
-            Friend.objects.filter(user1=user, user2=friend_user).exists()
-            or Friend.objects.filter(user1=friend_user, user2=user).exists()
-        ):
+        # 중복 친구 요청 방지(단방향만 체크)
+        if Friend.objects.filter(adder=user, friend_user=friend_user).exists():
             return Response({"error": "Friendship already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 새로운 친구 관계 생성
-        friend = Friend(user1=user, user2=friend_user)
+        # 새로운 단방향 친구 관계 생성
+        friend = Friend(adder=user, friend_user=friend_user)
         friend.save()
 
         response_serializer = FriendSerializer(friend)
@@ -154,13 +152,14 @@ class FriendDetailView(APIView):
         payload = decode_jwt(request)
         if not payload:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
         user = get_object_or_404(User, pk=payload.get("id"))
 
         friend_user_id = request.data.get("user_id")
         friend_user = get_object_or_404(User, pk=friend_user_id)
 
-        # 이미 존재하는 친구 관계 확인
-        friend = Friend.objects.filter(user1=user, user2=friend_user)
+        # 요청한 친구 관계만 삭제
+        friend = Friend.objects.filter(adder=user, friend_user=friend_user)
         if not friend.exists():
             return Response({"error": "Friendship does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
