@@ -12,6 +12,7 @@
     "vite": "^5.3.4"
   },
   "dependencies": {
-    "bootstrap": "^5.3.3"
+    "bootstrap": "^5.3.3",
+    "dotenv": "^16.4.7"
   }
 }

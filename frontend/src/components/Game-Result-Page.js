@@ -1,5 +1,9 @@
 import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const host = process.env.HOST_ADDRESS;
 
 export class GameResultPage extends Component {
 
@@ -94,7 +98,7 @@ export class GameResultPage extends Component {
 						})
 					};
 
-					fetch("https://localhost:443/api/game-history/tournament", {
+					fetch(`https://${host}/api/game-history/tournament`, {
 						method: 'POST',
 						credentials: 'include', // 쿠키를 포함하여 요청
 						headers: {

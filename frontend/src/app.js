@@ -1,5 +1,9 @@
 import { initializeRouter, createRoutes, changeUrl } from "./core/router.js";
 import { getCookie } from "./core/jwt.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const host = process.env.HOST_ADDRESS;
 
 class App {
 	app;
@@ -27,7 +31,7 @@ const closeAllSockets = () => {
 const online = () => {
 	const onlineSocket = new WebSocket(
 		'wss://'
-		+ "localhost:443"
+		+ `${host}`
 		+ '/ws/online/'
 	);
 	socketList.push(onlineSocket);

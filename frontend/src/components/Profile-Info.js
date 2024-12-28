@@ -2,6 +2,10 @@ import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
 import { MatchList } from "./Profile-List.js";
 import { parseJWT } from "../core/jwt.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const host = process.env.HOST_ADDRESS;
 
 export class ProfileInfo extends Component {
 	
@@ -45,7 +49,7 @@ export class ProfileInfo extends Component {
 		this.rate = null;
 		this.games = null;
 
-		fetch(`https://localhost:443/api/user/${this.props.uid}`, {
+		fetch(`https://${host}/api/user/${this.props.uid}`, {
 			method: 'GET',
 			credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
 		})

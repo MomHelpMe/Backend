@@ -3,6 +3,10 @@ import { FriendsInfo } from "./Friends-Info.js";
 import { List } from "./List.js";
 import { changeUrl, parsePath } from "../core/router.js";
 import { Input } from "./Input.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const host = process.env.HOST_ADDRESS;
 
 export class FriendsList extends Component {
 
@@ -69,7 +73,7 @@ export class FriendsList extends Component {
 
 	mounted() {
 		// API !!! Friends GET
-		fetch("https://localhost:443/api/friends/", {
+		fetch(`https://${host}/api/friends/`, {
 			method: 'GET',
 			credentials: 'include', // 쿠키를 포함하여 요청
 		})
@@ -164,7 +168,7 @@ export class FriendsList extends Component {
 			else
 			{
 				// API !!! Friends POST
-				fetch("https://localhost:443/api/friends/", {
+				fetch(`https://${host}/api/friends/`, {
 					method: 'POST',
 					credentials: 'include', // 쿠키를 포함하여 요청
 					headers: {
@@ -196,7 +200,7 @@ export class FriendsList extends Component {
 			const nickname = part[0];
 
 			//API !!! userList
-			fetch("https://localhost:443/api/user/", {
+			fetch(`https://${host}/api/user/`, {
 				method: 'GET',
 			})
 			.then(response => {
@@ -248,7 +252,7 @@ export class FriendsList extends Component {
 			const uid = part[1];
 
 			// API !!! Friends DELETE
-			fetch("https://localhost:443/api/friends/", {
+			fetch(`https://${host}/api/friends/`, {
 				method: 'DELETE',
 				credentials: 'include', // 쿠키를 포함하여 요청
 				headers: {

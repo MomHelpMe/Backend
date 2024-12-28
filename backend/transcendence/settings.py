@@ -36,6 +36,8 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
+HOST_ADDRESS = os.getenv("HOST_ADDRESS")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -103,13 +105,13 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = True  # TEST: 모든 도메인 허용 (보안 취약)
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
+    f"http://{HOST_ADDRESS}:5173",
 ]
 
 ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    f"http://{HOST_ADDRESS}:5173",
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # 쿠키 허용

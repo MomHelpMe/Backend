@@ -2,6 +2,8 @@
 
 # TEST: 개발 시 로컬 실행용
 
+cp .env.local .env
+
 # Initialize the environment (arg 1 to clear everything)
 if [ "$1" == "1" ]; then
   ./clean.sh

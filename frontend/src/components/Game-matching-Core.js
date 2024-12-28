@@ -2,6 +2,10 @@ import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
 import { getCookie } from "../core/jwt.js";
 import { socketList } from "../app.js"
+import dotenv from 'dotenv';
+
+dotenv.config();
+const host = process.env.HOST_ADDRESS;
 
 export class GameMatchingCore extends Component {
 	constructor($el, props) {
@@ -12,7 +16,7 @@ export class GameMatchingCore extends Component {
 		this.keysPressed = {};
 		this.gameSocket = new WebSocket(
 			'wss://'
-			+ "localhost:443"
+			+ `${host}`
 			+ '/ws/game/vs/'
 			+ this.props.room
 			+ '/'

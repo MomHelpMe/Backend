@@ -2,6 +2,10 @@ import { Component } from "../core/Component.js";
 import { TournamentHistory } from "./Tournament-History.js";
 import { parseJWT } from "../core/jwt.js";
 import { changeUrl } from "../core/router.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const host = process.env.HOST_ADDRESS;
 
 export class TournamentSetting extends Component {
 
@@ -60,7 +64,7 @@ export class TournamentSetting extends Component {
 
 		const translations = this.translations;
 
-		fetch("https://localhost:443/api/game-history/tournament", {
+		fetch(`https://${host}/api/game-history/tournament`, {
 			method: "GET",
 			credentials: "include", // 쿠키 포함
 		})

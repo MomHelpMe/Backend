@@ -29,8 +29,7 @@ RESET 			:= \033[0m
 
 all: 
 	@sh nginx/make_config.sh
-	@cp .env.production ./backend/.env
-	@cp .env.production .env
+	@sh set_env_production.sh.sh
 	@$(MAKE) up
 
 up:
@@ -67,7 +66,6 @@ clean:
 fclean:
 	@$(MAKE) down
 	@docker system prune -af --volumes
-	@docker volume rm transcendence_db_data
 	@echo "🧹 $(FG_BLUE)Fully cleaned up$(RESET) 🧹"
 
 populatedb:

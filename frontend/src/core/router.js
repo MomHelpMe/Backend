@@ -13,6 +13,10 @@ import { GameTournament } from "../components/Game-Tournament.js";
 import { GameMatching } from "../components/Game-matching.js";
 import { Error } from "../components/Error.js";
 import { GameResult } from "../components/Game-Result.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const host = process.env.HOST_ADDRESS;
 
 export const createRoutes = (root) => {
 	return {
@@ -84,7 +88,7 @@ export async function parsePath(path) {
 		const code = urlParams.get('code');
 		
 		// code 보내고 2FA 여부 확인!! (추가 부분!!)
-		fetch('https://localhost:443/api/callback/', {
+		fetch(`https://${host}/api/callback/`, {
 			method: 'POST',
 			credentials: 'include', // 쿠키를 포함하여 요청
 			headers: {
@@ -102,7 +106,7 @@ export async function parsePath(path) {
 			if (data){
 				if (data.is_2FA) {
 					// email 전송 요청
-					fetch('https://localhost:443/api/send-mail/',{
+					fetch(`https://${host}/api/send-mail/`,{
 						method: 'GET',
 						credentials: 'include', // 쿠키를 포함하여 요청
 						headers: {
@@ -117,7 +121,7 @@ export async function parsePath(path) {
 					});
 				} else {
 					// API!!! jwt가 있으면 해당 유저의 데이터베이스에서 언어 번호 (0 or 1 or 2) 얻어오기
-					fetch("https://localhost:443/api/language/", {
+					fetch(`https://${host}/api/language/`, {
 						method: 'GET',
 						credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
 					})
@@ -176,7 +180,7 @@ export const initializeRouter = () => {
 	window.addEventListener("popstate", async () => {
 		await parsePath(window.location.pathname);
 	});
-	fetch("https://localhost:443/api/language/", {
+	fetch(`https://${host}/api/language/`, {
 		method: 'GET',
 		credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
 	})
@@ -197,7 +201,7 @@ export const initializeRouter = () => {
 
 async function checkAuth() {
 	try {
-		const response = await fetch('https://localhost:443/api/validate/', {
+		const response = await fetch(`https://${host}/api/validate/`, {
 			method: 'GET',
 			credentials: 'include', // 쿠키를 포함하여 요청
 		});

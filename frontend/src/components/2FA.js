@@ -2,6 +2,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+const host = process.env.HOST_ADDRESS;
 
 export class TwoFA extends Component {
 	template() {
@@ -54,7 +58,7 @@ export class TwoFA extends Component {
 
 		this.addEvent('click', '#resendButton', () => {
 			// resend msg 전송
-			fetch('https://localhost:443/api/send-mail/', {
+			fetch(`https://${host}/api/send-mail/`, {
 				method: 'GET',
 				credentials: 'include', // 쿠키를 포함하여 요청
 			})
@@ -77,7 +81,7 @@ export class TwoFA extends Component {
 			}
 			
 			// API code 일치 확인 요청
-			fetch('https://localhost:443/api/verify-otp/', {
+			fetch(`https://${host}/api/verify-otp/`, {
 				method: 'POST',
 				credentials: 'include', // 쿠키를 포함하여 요청
 				headers: {
@@ -93,7 +97,7 @@ export class TwoFA extends Component {
 				if (data) {
 					if (data.success) {
 						// API!!! jwt가 있으면 해당 유저의 데이터베이스에서 언어 번호 (0 or 1 or 2) 얻어오기
-						fetch("https://localhost:443/api/language/", {
+						fetch(`https://${host}/api/language/`, {
 							method: 'GET',
 							credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
 						})
