@@ -31,7 +31,7 @@ const closeAllSockets = () => {
 const online = () => {
 	const onlineSocket = new WebSocket(
 		'wss://'
-		+ `${host}`
+		+ `${host}:443`
 		+ '/ws/online/'
 	);
 	socketList.push(onlineSocket);

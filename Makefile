@@ -29,7 +29,7 @@ RESET 			:= \033[0m
 
 all: 
 	@sh nginx/make_config.sh
-	@sh set_env_production.sh.sh
+	@sh set_env_production.sh
 	@$(MAKE) up
 
 up:

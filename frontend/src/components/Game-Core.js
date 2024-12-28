@@ -16,7 +16,7 @@ export class GameCore extends Component {
 		this.keysPressed = {};
 		this.gameSocket = new WebSocket(
 			'wss://'
-			+ `${host}`
+			+ `${host}:443`
 			+ '/ws/game/'
 			+ this.props.uid
 			+ '/'
