@@ -119,6 +119,7 @@ export class Menu extends Component {
 				.then(response => {
 					if (response.ok) {
 						closeAllSockets(socketList);
+						changeUrl("/");
 						location.reload(true);
 					}
 					else throw new Error('Network response was not ok');
