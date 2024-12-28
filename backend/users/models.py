@@ -33,8 +33,8 @@ class Friend(models.Model):
 class Game(models.Model):
     game_id = models.AutoField(primary_key=True)
     game_type = models.CharField(max_length=255)
-    user1 = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="games_as_user1")
-    user2 = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name="games_as_user2")
+    user1 = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name="games_as_user1")
+    user2 = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name="games_as_user2")
     score1 = models.IntegerField()
     score2 = models.IntegerField()
     start_timestamp = models.DateTimeField()
@@ -48,9 +48,9 @@ class Game(models.Model):
 
 class Tournament(models.Model):
     tournament_id = models.AutoField(primary_key=True)
-    game_id1 = models.ForeignKey(Game, null=True, on_delete=models.SET_NULL, related_name="tournaments_as_game1")
-    game_id2 = models.ForeignKey(Game, null=True, on_delete=models.SET_NULL, related_name="tournaments_as_game2")
-    game_id3 = models.ForeignKey(Game, null=True, on_delete=models.SET_NULL, related_name="tournaments_as_game3")
+    game_id1 = models.ForeignKey(Game, null=True, on_delete=models.CASCADE, related_name="tournaments_as_game1")
+    game_id2 = models.ForeignKey(Game, null=True, on_delete=models.CASCADE, related_name="tournaments_as_game2")
+    game_id3 = models.ForeignKey(Game, null=True, on_delete=models.CASCADE, related_name="tournaments_as_game3")
     start_timestamp = models.DateTimeField()
     end_timestamp = models.DateTimeField()
 
