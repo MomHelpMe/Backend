@@ -29,29 +29,23 @@ RESET 			:= \033[0m
 
 all: 
 	@sh nginx/make_config.sh
-	@$(MAKE) build
 	@$(MAKE) up
 
-build:
-	@echo "🐳 $(FG_BLUE)Building images$(RESET) 🐳"
-	@docker-compose -f docker-compose.yml build
-	@echo "🛠  $(FG_GREEN)Built images$(RESET) 🛠"
-
 up:
-	@docker-compose -f docker-compose.yml up -d
+	@docker compose -p transcendence -f docker-compose.yml up --build -d
 	@echo "🛜  $(FG_GREEN)Connect to $(FG_WHITE)$(UNDERLINE)https://localhost$(RESET) 🛜"
 
 down:
-	@docker-compose -f docker-compose.yml down
+	@docker compose -p transcendence -f docker-compose.yml down
 	@echo "🚫 $(FG_RED)Disconnected$(RESET) 🚫"
 
 stop:
-	@docker-compose -f docker-compose.yml stop
+	@docker compose -p transcendence -f docker-compose.yml stop
 	@echo "🛑 $(FG_YELLOW)Stopped$(RESET) 🛑"
 
 start:
 	@echo "$(FG_GREEN)Started$(RESET)"
-	@docker-compose -f docker-compose.yml start
+	@docker compose -p transcendence -f docker-compose.yml start
 	@echo "$(FG_GREEN)Connect to $(FG_WHITE)$(UNDERLINE)https://localhost$(RESET)"
 
 re:
@@ -61,7 +55,7 @@ re:
 
 log:
 	@echo "📄 $(FG_CYAN)Logs$(RESET) 📄"
-	@docker-compose -f docker-compose.yml logs -f
+	@docker compose -p transcendence -f docker-compose.yml logs -f
 
 clean:
 	@$(MAKE) down
