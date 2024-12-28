@@ -123,7 +123,7 @@ export async function parsePath(path) {
 			}
 		} catch (error) {
 			console.error('Error:', error);
-			return changeUrl("/", false);
+			return changeUrl("/error");
 		}
 	}
 
@@ -132,11 +132,11 @@ export async function parsePath(path) {
 		if ((path === "/" || path === "/2FA") && isAuthenticated) {
 			return changeUrl("/main");  // /로 이동할 때 인증되어 있으면 /main으로 이동, replaceState 사용
 		} else if ((path !== "/" && path !== "/2FA") && !isAuthenticated) {
-			return changeUrl("/");  // /를 제외한 다른 경로로 이동할 때 인증되지 않은 경우 /로 이동, replaceState 사용
+			return changeUrl("/", false);  // /를 제외한 다른 경로로 이동할 때 인증되지 않은 경우 /로 이동, replaceState 사용
 		}
 	} catch (error) {
 		console.error('Error:', error);
-		return changeUrl("/error", false);
+		return changeUrl("/error");
 	}
 
 	const routeKeys = Object.keys(routes);
