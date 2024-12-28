@@ -22,15 +22,14 @@ function waitOneSecond(time) {
 
 export const showLoading = async (routes, socketList) => {
     const online = async () => {
-        await waitOneSecond(100);
         const token = getCookie("jwt");
-        // if (!token) {
-            //     changeUrl("/", false);
-            //     return;
-            // }
-            const onlineSocket = new WebSocket(
-            'wss://' + "localhost:443" + '/ws/online/'
-            );
+        if (!token) {
+                changeUrl("/", false);
+                return; //여기서 에러나면 재앙일껄?
+            }
+        const onlineSocket = new WebSocket(
+        'wss://' + "localhost:443" + '/ws/online/'
+        );
         socketList.push(onlineSocket); // socketList에 추가
 
         onlineSocket.onopen = () => {
@@ -98,59 +97,11 @@ export const showLoading = async (routes, socketList) => {
     `;
     document.head.appendChild(style);
 
-    // console.log("showLoading");
-    // setTimeout(async () => {
-    //     // 1초 뒤에 수행
-    //     console.log("wait 1");
-        
-    //     // parsePath, initializeRouter가 끝날 때까지 기다림
-    //     await parsePath(window.location.pathname);
-    //     await initializeRouter(routes);
-      
-    //     // parsePath와 initializeRouter가 끝난 뒤에만 online 호출
-    //     console.log("wait 2");
-    //     online();
-      
-    //     // 1초 뒤에 로딩 엘리먼트 제거
-    //     setTimeout(() => {
-    //       console.log("wait 3");
-    //       document.body.removeChild(loadingElement);
-    //     }, 1000);
-      
-    //   }, 1000);
-
-    // console.log("showLoading");
-    // setTimeout(async () => {
-    //     console.log("wait 1");
-    //     await parsePath(window.location.pathname);
-    //     await initializeRouter(routes);
-    //     setTimeout(() => {
-    //         console.log("wait 2");
-    //         online(); // online 호출
-    //         setTimeout(() => {
-    //             console.log("wait 3");
-    //             document.body.removeChild(loadingElement);
-    //         }, 1000);
-    //     }, 2000);
-    // }, 1000);
     console.log("showLoading");
-
-    // setTimeout(async () => {
-      // 1초 뒤에 수행
-      console.log("wait 1");
-      
-      // parsePath, initializeRouter가 끝날 때까지 기다림
-      await parsePath(window.location.pathname);
-      await initializeRouter(routes);
-      await online();
-      // parsePath와 initializeRouter가 끝난 뒤에만 online 호출
-      console.log("wait 2");
     
-      // 1초 뒤에 로딩 엘리먼트 제거
-      setTimeout(() => {
-        console.log("wait 3");
-        document.body.removeChild(loadingElement);
-      }, 1000);
-    
-    // }, 1000);
+    // parsePath, initializeRouter가 끝날 때까지 기다림
+    await parsePath(window.location.pathname);
+    await initializeRouter(routes);
+    await online();
+    document.body.removeChild(loadingElement);
 };
