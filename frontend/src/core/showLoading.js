@@ -38,18 +38,10 @@ export const showLoading = async (routes, socketList) => {
     document.body.appendChild(loadingElement);
     addLoadingStyles();
 
-    console.log("showLoading");
-    console.log("wait 1");
-
     await Promise.all([
         initializeRouter(routes),
         parsePath(window.location.pathname),
     ]);
     await online(socketList);
-    console.log("wait 2");
-
-    setTimeout(() => {
-        console.log("wait 3");
-        document.body.removeChild(loadingElement);
-    }, 1000);
+    document.body.removeChild(loadingElement);
 };
