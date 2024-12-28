@@ -88,66 +88,56 @@ export async function parsePath(path) {
 		const code = urlParams.get('code');
 
 		console.log("code:" + code);
-		// code 보내고 2FA 여부 확인!! (추가 부분!!)
-		fetch('https://localhost:443/api/callback/', {
-			method: 'POST',
-			credentials: 'include', // 쿠키를 포함하여 요청
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ code })
-		})
-			.then(response => {
-				if (response.status == 200)
-					return response.json();
-				else
-					return null;
-			})
-			.then(data => {
-				if (data) {
-					if (data.is_2FA) {
-						// email 전송 요청
-						fetch('https://localhost:443/api/send-mail/', {
-							method: 'GET',
-							credentials: 'include', // 쿠키를 포함하여 요청
-							headers: {
-								'Content-Type': 'application/json'
-							}
-						})
-							.then(response => {
-								if (response.status == 200)
-									return changeUrl("/2FA", false);
-								else
-									return changeUrl("/", false);
-							});
+		try {
+			const response = await fetch('https://localhost:443/api/callback/', {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ code })
+			});
+
+			if (response.status === 200) {
+				const data = await response.json();
+				if (data.is_2FA) {
+					const mailResponse = await fetch('https://localhost:443/api/send-mail/', {
+						method: 'GET',
+						credentials: 'include',
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+
+					if (mailResponse.status === 200) {
+						return changeUrl("/2FA", false);
 					} else {
-						// API!!! jwt가 있으면 해당 유저의 데이터베이스에서 언어 번호 (0 or 1 or 2) 얻어오기
-						fetch("https://localhost:443/api/language/", {
-							method: 'GET',
-							credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
-						})
-							.then(response => {
-								if (!response.ok) {
-									changeUrl("/");
-									return null;
-								}
-								return response.json();
-							})
-							.then(data => {
-								if (data) {
-									console.log(data.language);
-									root.lan.value = data.language;
-									changeUrl('/main'); // 메인 페이지로 이동
-								}
-							});
+						return changeUrl("/", false);
+					}
+				} else {
+					const langResponse = await fetch("https://localhost:443/api/language/", {
+						method: 'GET',
+						credentials: 'include',
+					});
+
+					if (!langResponse.ok) {
+						changeUrl("/");
+						return null;
+					}
+
+					const langData = await langResponse.json();
+					if (langData) {
+						console.log(langData.language);
+						root.lan.value = langData.language;
+						changeUrl('/main');
 					}
 				}
-				else return changeUrl("/", false);
-			})
-			.catch(error => {
-				console.error('Error:', error);
-			});
-		return;
+			} else {
+				return changeUrl("/", false);
+			}
+		} catch (error) {
+			console.error('Error:', error);
+		}
 	}
 
 	const isAuthenticated = await checkAuth();
