@@ -103,10 +103,7 @@ export async function parsePath(path) {
 				if (data.is_2FA) {
 					const mailResponse = await fetch('https://localhost:443/api/send-mail/', {
 						method: 'GET',
-						credentials: 'include',
-						headers: {
-							'Content-Type': 'application/json'
-						}
+						credentials: 'include'
 					});
 
 					if (mailResponse.status === 200) {
