@@ -50,12 +50,16 @@ export const createRoutes = (root) => {
 			component: (props) => new GameTournament(root.app, props),
 		},
 		"/game/tournament/:uid/result/:winner": {
-			component: (props) => { props["isTournament"] = true;
-									return new GameResult(root.app, props);}
+			component: (props) => {
+				props["isTournament"] = true;
+				return new GameResult(root.app, props);
+			}
 		},
 		"/game/:uid/result/:winner": {
-			component: (props) => { props["isTournament"] = false;
-									return new GameResult(root.app, props);}
+			component: (props) => {
+				props["isTournament"] = false;
+				return new GameResult(root.app, props);
+			}
 		},
 		"/game/vs/:room": {
 			component: (props) => new GameMatching(root.app, props),
@@ -82,7 +86,8 @@ export async function parsePath(path) {
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('code')) {
 		const code = urlParams.get('code');
-		
+
+		console.log("code:" + code);
 		// code 보내고 2FA 여부 확인!! (추가 부분!!)
 		fetch('https://localhost:443/api/callback/', {
 			method: 'POST',
@@ -92,57 +97,57 @@ export async function parsePath(path) {
 			},
 			body: JSON.stringify({ code })
 		})
-		.then(response => {
-			if (response.status == 200)
-				return response.json();
-			else
-				return null;
-		})
-		.then(data => {
-			if (data){
-				if (data.is_2FA) {
-					// email 전송 요청
-					fetch('https://localhost:443/api/send-mail/',{
-						method: 'GET',
-						credentials: 'include', // 쿠키를 포함하여 요청
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					})
-					.then(response => {
-						if (response.status == 200)
-							return changeUrl("/2FA", false);
-						else
-							return changeUrl("/", false);
-					});
-				} else {
-					// API!!! jwt가 있으면 해당 유저의 데이터베이스에서 언어 번호 (0 or 1 or 2) 얻어오기
-					fetch("https://localhost:443/api/language/", {
-						method: 'GET',
-						credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
-					})
-					.then(response => {
-						if (!response.ok){
-							changeUrl("/");
-							return null;
-						} 
-						return response.json();
-					})
-					.then(data => {
-						if (data){
-							console.log(data.language);
-							root.lan.value = data.language;
-							changeUrl('/main'); // 메인 페이지로 이동
-						}
-					});
+			.then(response => {
+				if (response.status == 200)
+					return response.json();
+				else
+					return null;
+			})
+			.then(data => {
+				if (data) {
+					if (data.is_2FA) {
+						// email 전송 요청
+						fetch('https://localhost:443/api/send-mail/', {
+							method: 'GET',
+							credentials: 'include', // 쿠키를 포함하여 요청
+							headers: {
+								'Content-Type': 'application/json'
+							}
+						})
+							.then(response => {
+								if (response.status == 200)
+									return changeUrl("/2FA", false);
+								else
+									return changeUrl("/", false);
+							});
+					} else {
+						// API!!! jwt가 있으면 해당 유저의 데이터베이스에서 언어 번호 (0 or 1 or 2) 얻어오기
+						fetch("https://localhost:443/api/language/", {
+							method: 'GET',
+							credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
+						})
+							.then(response => {
+								if (!response.ok) {
+									changeUrl("/");
+									return null;
+								}
+								return response.json();
+							})
+							.then(data => {
+								if (data) {
+									console.log(data.language);
+									root.lan.value = data.language;
+									changeUrl('/main'); // 메인 페이지로 이동
+								}
+							});
+					}
 				}
-			}
-			else return changeUrl("/", false);
-		})
-		.catch(error => {
-			console.error('Error:', error);
-		});
-		return ;
+				else return changeUrl("/", false);
+			})
+			.catch(error => {
+				console.error('Error:', error);
+			});
+		return;
 	}
 
 	const isAuthenticated = await checkAuth();
@@ -172,27 +177,29 @@ export async function parsePath(path) {
 	changeUrl("/404", false);
 }
 
-export const initializeRouter = () => {
+export const initializeRouter = async () => {
 	window.addEventListener("popstate", async () => {
 		await parsePath(window.location.pathname);
 	});
-	fetch("https://localhost:443/api/language/", {
-		method: 'GET',
-		credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
-	})
-	.then(response => {
-		if (!response.ok){
-			console.log("so bad");
-			return null;
-		} 
-		return response.json();
-	})
-	.then(data => {
-		if (data){
-			root.lan.value = data.language;
-		} 
-		parsePath(window.location.pathname);
-	});
+
+	// fetch("https://localhost:443/api/language/", {
+	// 	method: 'GET',
+	// 	credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
+	// })
+	// 	.then(response => {
+	// 		if (!response.ok) {
+	// 			console.log("so bad");
+	// 			return null;
+	// 		}
+	// 		return response.json();
+	// 	})
+	// 	.then(data => {
+	// 		if (data) {
+	// 			root.lan.value = data.language;
+	// 			return;
+	// 		}
+	// 		// parsePath(window.location.pathname);
+	// 	});
 };
 
 async function checkAuth() {

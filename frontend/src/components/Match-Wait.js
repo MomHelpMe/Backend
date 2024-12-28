@@ -6,18 +6,19 @@ import { socketList } from "../app.js"
 export class WaitForMatch extends Component {
 
 	initState() {
-		if (socketList[0] !== undefined)
-		{
-			console.log("send enter-matching");
-			socketList[0].send(JSON.stringify({ 'action': 'enter-matching' }));
-			socketList[0].onmessage = (e) => {
-				const data = JSON.parse(e.data);
-				console.log(data);
-				if (data.action === 'start_game') {
-					console.log("start game on " + data.room_name);
-					changeUrl('/game/vs/' + data.room_name);
-				}
-			};
+		if (socketList[0] !== undefined) {
+			setTimeout(() => {
+				console.log("send enter-matching");
+				socketList[0].send(JSON.stringify({ 'action': 'enter-matching' }));
+				socketList[0].onmessage = (e) => {
+					const data = JSON.parse(e.data);
+					console.log(data);
+					if (data.action === 'start_game') {
+						console.log("start game on " + data.room_name);
+						changeUrl('/game/vs/' + data.room_name);
+					}
+				};
+			}, 1000); // 1초 지연
 		}
 		return {};
 	}
@@ -34,12 +35,12 @@ export class WaitForMatch extends Component {
 				mathcingText: ["ピッタリの相手を探してるよ..."],
 			}
 		};
-	
+
 		this.translations = languages[this.props.lan.value];
-	
+
 	}
 
-	template () {
+	template() {
 		const translations = this.translations;
 
 		return `
@@ -70,11 +71,17 @@ export class WaitForMatch extends Component {
 
 	setEvent() {
 		this.addEvent('click', '#goBack', (event) => {
+			console.log("send leave-matching");
+			if (socketList[0] !== undefined)
+				socketList[0].send(JSON.stringify({ 'action': 'leave-matching' }));
+			window.removeEventListener('popstate', handleSocketClose);
 			changeUrl("/main", false);
 		});
 
 		const handleSocketClose = (e) => {
-			socketList[0].send(JSON.stringify({ 'action': 'leave-matching' }));
+			console.log("send leave-matching");
+			if (socketList[0] !== undefined)
+				socketList[0].send(JSON.stringify({ 'action': 'leave-matching' }));
 			window.removeEventListener('popstate', handleSocketClose);
 		}
 

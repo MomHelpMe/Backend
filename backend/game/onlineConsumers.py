@@ -5,11 +5,12 @@ import jwt
 from django.conf import settings
 from channels.exceptions import DenyConnection
 from .matchingConsumers import MatchingGameConsumer, MatchingGameState
+import random
 
 
 class OnlineConsumer(AsyncWebsocketConsumer):
     online_user_list = set([])
-    matching_queue = []
+    matching_queue = set([])
     matching_task = None
 
     @classmethod
@@ -23,8 +24,9 @@ class OnlineConsumer(AsyncWebsocketConsumer):
 
     @classmethod
     async def start_game(cls):
-        user1 = cls.matching_queue.pop(0)
-        user2 = cls.matching_queue.pop(0)
+        user1, user2 = random.sample(cls.matching_queue, 2)
+        cls.matching_queue.remove(user1)
+        cls.matching_queue.remove(user2)
 
         room_name = f"{user1.uid}_{user2.uid}"
 
@@ -94,23 +96,28 @@ class OnlineConsumer(AsyncWebsocketConsumer):
             return False
 
     async def enter_matching(self):
-        # Add user to matching queue
-        if self not in OnlineConsumer.matching_queue:
-            OnlineConsumer.matching_queue.append(self)
-            print(
-                "Matching queue: ", [user.uid for user in OnlineConsumer.matching_queue]
-            )
+        for user in list(OnlineConsumer.matching_queue):
+            if user.uid == self.uid:
+                OnlineConsumer.matching_queue.remove(user)
+                print(f"Replaced existing user {self.uid} in the matching queue.")
+                break
+        OnlineConsumer.matching_queue.add(self)
+        print(
+            "Matching queue: ", [user.uid for user in OnlineConsumer.matching_queue]
+        )
 
     async def leave_matching(self):
-        # Remove user from matching queue
-        if self in OnlineConsumer.matching_queue:
-            OnlineConsumer.matching_queue.remove(self)
-            print(f"User {self.uid} removed from matching queue")
-            print(
-                "Matching queue: ", [user.uid for user in OnlineConsumer.matching_queue]
-            )
+        for user in list(OnlineConsumer.matching_queue):
+            if user.uid == self.uid:
+                OnlineConsumer.matching_queue.remove(user)
+                print(f"User {self.uid} removed from matching queue")
+                break
+        print(
+            "Matching queue: ", [user.uid for user in OnlineConsumer.matching_queue]
+        )
 
     async def disconnect(self, close_code):
+        await self.leave_matching()
         try:
             if self.uid in OnlineConsumer.online_user_list:
                 OnlineConsumer.online_user_list.remove(self.uid)

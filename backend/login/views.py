@@ -24,14 +24,17 @@ def login(request):
 def callback(request):
     code = request.data.get("code")
     if not code:
+        print("No code in request")
         return Response(status=401)
 
     access_token = get_acccess_token(code)
     if not access_token:
+        print("Failed to get access token!!!")
         return Response(status=401)
 
     user_data = get_user_info(access_token)
     if not user_data:
+        print("Failed to get user info")
         return Response(status=401)
 
     user, created = get_or_save_user(user_data)
