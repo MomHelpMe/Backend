@@ -3,7 +3,7 @@ import { FriendsInfo } from "./Friends-Info.js";
 import { List } from "./List.js";
 import { changeUrl, parsePath } from "../core/router.js";
 import { Input } from "./Input.js";
-import host from "./load_host.js";
+import host from "../load_host.js";
 
 export class FriendsList extends Component {
 

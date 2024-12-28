@@ -1,6 +1,6 @@
 import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
-import host from "./load_host.js";
+import host from "../load_host.js";
 
 export class Login extends Component {
 

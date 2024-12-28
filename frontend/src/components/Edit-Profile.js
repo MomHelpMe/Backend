@@ -1,7 +1,7 @@
 import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
 import { parseJWT } from "../core/jwt.js";
-import host from "./load_host.js";
+import host from "../load_host.js";
 
 export class EditProfile extends Component {
 

@@ -2,7 +2,7 @@ import { Component } from "../core/Component.js";
 import { changeUrl } from "../core/router.js";
 import { MatchList } from "./Profile-List.js";
 import { parseJWT } from "../core/jwt.js";
-import host from "./load_host.js";
+import host from "../load_host.js";
 
 export class ProfileInfo extends Component {
 	

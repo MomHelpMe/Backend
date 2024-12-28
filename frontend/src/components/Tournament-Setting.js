@@ -2,7 +2,7 @@ import { Component } from "../core/Component.js";
 import { TournamentHistory } from "./Tournament-History.js";
 import { parseJWT } from "../core/jwt.js";
 import { changeUrl } from "../core/router.js";
-import host from "./load_host.js";
+import host from "../load_host.js";
 
 export class TournamentSetting extends Component {
 

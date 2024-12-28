@@ -2,7 +2,7 @@ import { Component } from "../core/Component.js";
 import { getCookie } from "../core/jwt.js";
 import { socketList } from "../app.js"
 import { changeUrl } from "../core/router.js";
-import host from "./load_host.js";
+import host from "../load_host.js";
 
 export class GameTournamentCore extends Component {
 	constructor($el, props) {
