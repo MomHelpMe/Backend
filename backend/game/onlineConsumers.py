@@ -10,7 +10,7 @@ import random
 
 class OnlineConsumer(AsyncWebsocketConsumer):
     online_user_list = set([])
-    matching_queue = set([])
+    matching_queue = []
     matching_task = None
 
     @classmethod
@@ -24,9 +24,8 @@ class OnlineConsumer(AsyncWebsocketConsumer):
 
     @classmethod
     async def start_game(cls):
-        user1, user2 = random.sample(cls.matching_queue, 2)
-        cls.matching_queue.remove(user1)
-        cls.matching_queue.remove(user2)
+        user1 = cls.matching_queue.pop(0)
+        user2 = cls.matching_queue.pop(0)
 
         room_name = f"{user1.uid}_{user2.uid}"
 
@@ -101,7 +100,7 @@ class OnlineConsumer(AsyncWebsocketConsumer):
                 OnlineConsumer.matching_queue.remove(user)
                 print(f"Replaced existing user {self.uid} in the matching queue.")
                 break
-        OnlineConsumer.matching_queue.add(self)
+        OnlineConsumer.matching_queue.append(self)
         print(
             "Matching queue: ", [user.uid for user in OnlineConsumer.matching_queue]
         )
