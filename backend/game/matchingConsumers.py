@@ -54,9 +54,9 @@ class MatchingGameState:
             self.left_ball = Ball(0, SCREEN_HEIGHT, SCREEN_WIDTH, self.left_bar)
             self.right_ball = Ball(1, SCREEN_HEIGHT, SCREEN_WIDTH, self.right_bar)
             self.score = [0, 0]
-            print("user1:", user1, "user2:", user2)
+            # print("user1:", user1, "user2:", user2)
             user1_nickname, user2_nickname = await get_user_nicknames(user1, user2)
-            print("user1_nickname:", user1_nickname, "user2_nickname:", user2_nickname)
+            # print("user1_nickname:", user1_nickname, "user2_nickname:", user2_nickname)
             self.player = [user1_nickname, user2_nickname]
             self.penalty_time = [0, 0]
             print("initializing game state finished successfully!")
@@ -75,7 +75,11 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
         self.authenticated = False
         self.start_time = timezone.now()
 
+        if self.room_group_name not in MatchingGameConsumer.game_states:
+            return
+
         await self.accept()
+
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -85,10 +89,9 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
             token = text_data_json.get("token")
             if not token or not self.authenticate(token):
                 print("authentication failed")
-                await self.close(code=4001)
+                # await self.close(code=4001)
                 return
             self.authenticated = True
-            self.my_uid = 0
 
             # Join room group after successful authentication
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -108,8 +111,6 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
                     MatchingGameConsumer.game_tasks[self.room_group_name] = (
                         asyncio.create_task(self.game_loop())
                     )
-        elif not self.authenticated:
-            await self.close(code=4001)
         else:
             bar = text_data_json.get("bar")
             state = MatchingGameConsumer.game_states[self.room_group_name]
@@ -158,21 +159,39 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
             return False
 
     async def disconnect(self, close_code):
-        # Leave room group
+        # 인증된 소켓만 처리
         if self.authenticated:
-            await self.channel_layer.group_discard(
-                self.room_group_name, self.channel_name
-            )
-            # Decrease the client count for this room
+            print("disconnected: ", self.user_index)
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+            # 현재 방의 접속자 수를 1 줄임
             if self.room_group_name in MatchingGameConsumer.client_counts:
                 MatchingGameConsumer.client_counts[self.room_group_name] -= 1
-                if MatchingGameConsumer.client_counts[self.room_group_name] <= 0:
-                    MatchingGameConsumer.game_tasks[self.room_group_name].cancel()
-                    del MatchingGameConsumer.game_tasks[self.room_group_name]
-                    del MatchingGameConsumer.game_states[self.room_group_name]
-                    del MatchingGameConsumer.client_counts[self.room_group_name]
+
+                # 만약 이제 방에 1명만 남았다면 -> 남은 사람이 승자
+                if MatchingGameConsumer.client_counts[self.room_group_name] == 1:
+                    # 누가 남았는지 판별 (내가 0이라면 1이 승자, 내가 1이라면 0이 승자)
+                    winner_index = 1 - self.user_index  
+                    state = MatchingGameConsumer.game_states[self.room_group_name]
+
+                    # send_game_result를 통해 DB에 게임결과 저장 및
+                    # 나머지(승자)에게 게임 종료 메시지 전송
+                    await self.send_game_result(winner_index)
+                    await asyncio.sleep(0.1)
+                    await self.close()
+                
+                # 아무도 안 남았다면 방을 완전히 정리
+                elif MatchingGameConsumer.client_counts[self.room_group_name] <= 0:
+                    if self.room_group_name in MatchingGameConsumer.game_tasks:
+                        MatchingGameConsumer.game_tasks[self.room_group_name].cancel()
+                        del MatchingGameConsumer.game_tasks[self.room_group_name]
+                    if self.room_group_name in MatchingGameConsumer.game_states:
+                        del MatchingGameConsumer.game_states[self.room_group_name]
+                    if self.room_group_name in MatchingGameConsumer.client_counts:
+                        del MatchingGameConsumer.client_counts[self.room_group_name]
             else:
                 MatchingGameConsumer.client_counts[self.room_group_name] = 0
+
 
     async def send_initialize_game(self):
         state = MatchingGameConsumer.game_states[self.room_group_name]
@@ -248,6 +267,7 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
     async def send_game_result(self, winner):
         state = MatchingGameConsumer.game_states[self.room_group_name]
 
+        print("Game result for", self.room_group_name, ":", state.score, "Winner:", winner)
         await self.save_game_result(state, winner)
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -270,6 +290,10 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
             user2_obj = None
 
         score1, score2 = state.score
+        if winner == 0:
+            score1 = MAX_SCORE
+        else:
+            score2 = MAX_SCORE
 
         game = Game.objects.create(
             game_type="PvP",  
@@ -300,16 +324,21 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
         score = event["score"]
         winner = event["winner"]
 
-        # Send the game result to the WebSocket
-        await self.send(
-            text_data=json.dumps(
-                {
-                    "type": "game_result",
-                    "score": score,
-                    "winner": winner,
-                }
+        if not self.scope["client"]:
+            return
+        try:
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "game_result",
+                        "score": score,
+                        "winner": winner,
+                    }
+                )
             )
-        )
+        except Exception as e:
+            print("Failed to send game_result_message:", e, "for", self.user_index)
+
 
     async def send_game_state(self):
         state = MatchingGameConsumer.game_states[self.room_group_name]
