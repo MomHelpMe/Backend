@@ -76,7 +76,6 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
         self.start_time = timezone.now()
 
         if self.room_group_name not in MatchingGameConsumer.game_states:
-            await self.close()
             return
 
         await self.accept()
@@ -90,7 +89,7 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
             token = text_data_json.get("token")
             if not token or not self.authenticate(token):
                 print("authentication failed")
-                await self.close(code=4001)
+                # await self.close(code=4001)
                 return
             self.authenticated = True
 
@@ -112,8 +111,6 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
                     MatchingGameConsumer.game_tasks[self.room_group_name] = (
                         asyncio.create_task(self.game_loop())
                     )
-        elif not self.authenticated:
-            await self.close(code=4001)
         else:
             bar = text_data_json.get("bar")
             state = MatchingGameConsumer.game_states[self.room_group_name]
@@ -180,19 +177,8 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
                     # send_game_result를 통해 DB에 게임결과 저장 및
                     # 나머지(승자)에게 게임 종료 메시지 전송
                     await self.send_game_result(winner_index)
-
-                    # 이후 방 정리(루프 종료 + state 정리)  
-                    # 한쪽이 승리 처리가 끝났으므로 game_loop도 종료시키는 편이 좋습니다.
-                    if self.room_group_name in MatchingGameConsumer.game_tasks:
-                        MatchingGameConsumer.game_tasks[self.room_group_name].cancel()
-
-                    # 방 청소
-                    if self.room_group_name in MatchingGameConsumer.game_states:
-                        del MatchingGameConsumer.game_states[self.room_group_name]
-                    if self.room_group_name in MatchingGameConsumer.client_counts:
-                        del MatchingGameConsumer.client_counts[self.room_group_name]
-                    if self.room_group_name in MatchingGameConsumer.game_tasks:
-                        del MatchingGameConsumer.game_tasks[self.room_group_name]
+                    await asyncio.sleep(0.1)
+                    await self.close()
                 
                 # 아무도 안 남았다면 방을 완전히 정리
                 elif MatchingGameConsumer.client_counts[self.room_group_name] <= 0:
@@ -281,6 +267,7 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
     async def send_game_result(self, winner):
         state = MatchingGameConsumer.game_states[self.room_group_name]
 
+        print("Game result for", self.room_group_name, ":", state.score, "Winner:", winner)
         await self.save_game_result(state, winner)
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -303,6 +290,10 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
             user2_obj = None
 
         score1, score2 = state.score
+        if winner == 0:
+            score1 = MAX_SCORE
+        else:
+            score2 = MAX_SCORE
 
         game = Game.objects.create(
             game_type="PvP",  

@@ -6,6 +6,7 @@ from django.conf import settings
 from channels.exceptions import DenyConnection
 from .matchingConsumers import MatchingGameConsumer, MatchingGameState
 import random
+import uuid
 
 
 class OnlineConsumer(AsyncWebsocketConsumer):
@@ -27,7 +28,7 @@ class OnlineConsumer(AsyncWebsocketConsumer):
         user1 = cls.matching_queue.pop(0)
         user2 = cls.matching_queue.pop(0)
 
-        room_name = f"{user1.uid}_{user2.uid}"
+        room_name = f"{user1.uid}_{user2.uid}_{str(uuid.uuid4())[:8]}"
 
         game_state = MatchingGameState()
         await game_state.initialize(user1.uid, user2.uid)  # 비동기 초기화
