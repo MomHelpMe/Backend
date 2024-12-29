@@ -18,7 +18,7 @@ export class WaitForMatch extends Component {
 						changeUrl('/game/vs/' + data.room_name);
 					}
 				};
-			}, 1000); // 1초 지연
+			}, 2000); // 1초 지연
 		}
 		return {};
 	}

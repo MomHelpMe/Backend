@@ -37,11 +37,14 @@ export const showLoading = async (routes, socketList) => {
     const loadingElement = createLoadingElement();
     document.body.appendChild(loadingElement);
     addLoadingStyles();
-
+    
     await Promise.all([
         initializeRouter(routes),
         parsePath(window.location.pathname),
+        changeUrl("/main", false)
     ]);
-    await online(socketList);
-    document.body.removeChild(loadingElement);
+    setTimeout(async () => {
+        await online(socketList);
+        document.body.removeChild(loadingElement);
+    }, 1000);
 };

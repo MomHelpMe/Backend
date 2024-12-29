@@ -75,7 +75,12 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
         self.authenticated = False
         self.start_time = timezone.now()
 
+        if self.room_group_name not in MatchingGameConsumer.game_states:
+            await self.close()
+            return
+
         await self.accept()
+
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
