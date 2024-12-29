@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # TEST: 개발 시 로컬 실행용
+cp .env.local .env
 
 # Initialize the environment (arg 1 to clear everything)
 if [ "$1" == "1" ]; then
@@ -16,9 +17,9 @@ fi
 
 # Check if the container is not running
 if [ -z "$(docker ps -aq -f name=postgres)" ]; then
-  docker volume create db_data
+  docker volume create transcendence_db_data
   docker build -t postgres db/
-  docker run -d -p 5432:5432 --name postgres --env-file .env -v db_data:/var/lib/postgresql/data postgres
+  docker run -d -p 5432:5432 --name postgres --env-file .env -v transcendence_db_data:/var/lib/postgresql/data postgres
 fi
 
 ENV_DIR="venv"

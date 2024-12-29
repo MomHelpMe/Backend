@@ -29,6 +29,7 @@ RESET 			:= \033[0m
 
 all: 
 	@sh nginx/make_config.sh
+	@cp .env.production ./frontend/.env
 	@cp .env.production ./backend/.env
 	@cp .env.production .env
 	@$(MAKE) up
@@ -52,7 +53,7 @@ start:
 
 re:
 	@echo "$(FG_GREEN)Restarted$(RESET)"
-	@$(MAKE) fclean
+	@$(MAKE) clean
 	@$(MAKE) all
 
 log:
@@ -64,14 +65,8 @@ clean:
 	@docker system prune -af --volumes
 	@echo "🧹 $(FG_BLUE)Cleaned up$(RESET) 🧹"
 
-fclean:
-	@$(MAKE) down
-	@docker system prune -af --volumes
-	@docker volume rm transcendence_db_data
-	@echo "🧹 $(FG_BLUE)Fully cleaned up$(RESET) 🧹"
-
 populatedb:
 	@docker exec -it backend python manage.py populatedb
 
-.PHONY: all build up down stop start re log clean fclean populatedb
+.PHONY: all build up down stop start re log clean populatedb
 

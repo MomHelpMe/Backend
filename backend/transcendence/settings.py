@@ -103,7 +103,7 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = True  # TEST: 모든 도메인 허용 (보안 취약)
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
+    "http://localhost:5173",    
 ]
 
 ALLOWED_HOSTS = ["*"]
