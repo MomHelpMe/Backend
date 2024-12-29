@@ -13,6 +13,7 @@ import { GameTournament } from "../components/Game-Tournament.js";
 import { GameMatching } from "../components/Game-matching.js";
 import { Error } from "../components/Error.js";
 import { GameResult } from "../components/Game-Result.js";
+import { getRequest, postRequest } from '../utils.js';
 
 export const createRoutes = (root) => {
 	return {
@@ -50,12 +51,16 @@ export const createRoutes = (root) => {
 			component: (props) => new GameTournament(root.app, props),
 		},
 		"/game/tournament/:uid/result/:winner": {
-			component: (props) => { props["isTournament"] = true;
-									return new GameResult(root.app, props);}
+			component: (props) => {
+				props["isTournament"] = true;
+				return new GameResult(root.app, props);
+			}
 		},
 		"/game/:uid/result/:winner": {
-			component: (props) => { props["isTournament"] = false;
-									return new GameResult(root.app, props);}
+			component: (props) => {
+				props["isTournament"] = false;
+				return new GameResult(root.app, props);
+			}
 		},
 		"/game/vs/:room": {
 			component: (props) => new GameMatching(root.app, props),
@@ -82,74 +87,56 @@ export async function parsePath(path) {
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('code')) {
 		const code = urlParams.get('code');
-		
-		// code 보내고 2FA 여부 확인!! (추가 부분!!)
-		fetch('https://localhost:443/api/callback/', {
-			method: 'POST',
-			credentials: 'include', // 쿠키를 포함하여 요청
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ code })
-		})
-		.then(response => {
-			if (response.status == 200)
-				return response.json();
-			else
-				return null;
-		})
-		.then(data => {
-			if (data){
+
+		console.log("code:" + code);
+		try {
+			const response = await postRequest('/callback/', { code });
+
+			if (response && response.status === 200) {
+				const data = await response.json();
 				if (data.is_2FA) {
-					// email 전송 요청
-					fetch('https://localhost:443/api/send-mail/',{
-						method: 'GET',
-						credentials: 'include', // 쿠키를 포함하여 요청
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					})
-					.then(response => {
-						if (response.status == 200)
-							return changeUrl("/2FA", false);
-						else
-							return changeUrl("/", false);
-					});
+					const mailResponse = await getRequest('/send-mail/');
+
+					if (mailResponse && mailResponse.status === 200) {
+						return changeUrl("/2FA", false);
+					} else {
+						return changeUrl("/", false);
+					}
 				} else {
-					// API!!! jwt가 있으면 해당 유저의 데이터베이스에서 언어 번호 (0 or 1 or 2) 얻어오기
-					fetch("https://localhost:443/api/language/", {
-						method: 'GET',
-						credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
-					})
-					.then(response => {
-						if (!response.ok){
-							changeUrl("/");
-							return null;
-						} 
-						return response.json();
-					})
-					.then(data => {
-						if (data){
-							console.log(data.language);
-							root.lan.value = data.language;
-							changeUrl('/main'); // 메인 페이지로 이동
-						}
-					});
+					const langResponse = await getRequest('/language/');
+
+					if (!langResponse || !langResponse.ok) {
+						changeUrl("/");
+						return null;
+					}
+
+					const langData = await langResponse.json();
+					if (langData) {
+						console.log(langData.language);
+						root.lan.value = langData.language;
+						changeUrl('/main');
+						return null;
+					}
 				}
+			} else {
+				return changeUrl("/", false);
 			}
-			else return changeUrl("/", false);
-		})
-		.catch(error => {
+		} catch (error) {
 			console.error('Error:', error);
-		});
-		return ;
+			return changeUrl("/error");
+		}
 	}
 
-	const isAuthenticated = await checkAuth();
-	if ((path === "/" || path === "/2FA") && isAuthenticated) {
-		return changeUrl("/main");  // /로 이동할 때 인증되어 있으면 /main으로 이동, replaceState 사용
-	} else if ((path !== "/" && path !== "/2FA") && !isAuthenticated) {
-		return changeUrl("/");  // /를 제외한 다른 경로로 이동할 때 인증되지 않은 경우 /로 이동, replaceState 사용
+	try {
+		const isAuthenticated = await checkAuth();
+		if ((path === "/" || path === "/2FA") && isAuthenticated) {
+			return changeUrl("/main");  // /로 이동할 때 인증되어 있으면 /main으로 이동, replaceState 사용
+		} else if ((path !== "/" && path !== "/2FA") && !isAuthenticated) {
+			return changeUrl("/", false);  // /를 제외한 다른 경로로 이동할 때 인증되지 않은 경우 /로 이동, replaceState 사용
+		}
+	} catch (error) {
+		console.error('Error:', error);
+		return changeUrl("/error");
 	}
 
 	const routeKeys = Object.keys(routes);
@@ -172,39 +159,13 @@ export async function parsePath(path) {
 	changeUrl("/404", false);
 }
 
-export const initializeRouter = () => {
+export const initializeRouter = async () => {
 	window.addEventListener("popstate", async () => {
 		await parsePath(window.location.pathname);
-	});
-	fetch("https://localhost:443/api/language/", {
-		method: 'GET',
-		credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
-	})
-	.then(response => {
-		if (!response.ok){
-			console.log("so bad");
-			return null;
-		} 
-		return response.json();
-	})
-	.then(data => {
-		if (data){
-			root.lan.value = data.language;
-		} 
-		parsePath(window.location.pathname);
 	});
 };
 
 async function checkAuth() {
-	try {
-		const response = await fetch('https://localhost:443/api/validate/', {
-			method: 'GET',
-			credentials: 'include', // 쿠키를 포함하여 요청
-		});
-
-		return response.ok; // 상태가 200~299 범위에 있으면 true, 그렇지 않으면 false 반환
-	} catch (error) {
-		console.error('Error:', error);
-		return false;
-	}
+	const response = await getRequest('/validate/');
+	return response ? response.ok : false;
 }
