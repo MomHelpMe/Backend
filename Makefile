@@ -29,53 +29,44 @@ RESET 			:= \033[0m
 
 all: 
 	@sh nginx/make_config.sh
-	@$(MAKE) build
+	@cp .env.production ./frontend/.env
+	@cp .env.production ./backend/.env
+	@cp .env.production .env
 	@$(MAKE) up
 
-build:
-	@echo "🐳 $(FG_BLUE)Building images$(RESET) 🐳"
-	@docker-compose -f docker-compose.yml build
-	@echo "🛠  $(FG_GREEN)Built images$(RESET) 🛠"
-
 up:
-	@docker-compose -f docker-compose.yml up -d
+	@docker compose -p transcendence -f docker-compose.yml up --build -d
 	@echo "🛜  $(FG_GREEN)Connect to $(FG_WHITE)$(UNDERLINE)https://localhost$(RESET) 🛜"
 
 down:
-	@docker-compose -f docker-compose.yml down
+	@docker compose -p transcendence -f docker-compose.yml down
 	@echo "🚫 $(FG_RED)Disconnected$(RESET) 🚫"
 
 stop:
-	@docker-compose -f docker-compose.yml stop
+	@docker compose -p transcendence -f docker-compose.yml stop
 	@echo "🛑 $(FG_YELLOW)Stopped$(RESET) 🛑"
 
 start:
 	@echo "$(FG_GREEN)Started$(RESET)"
-	@docker-compose -f docker-compose.yml start
+	@docker compose -p transcendence -f docker-compose.yml start
 	@echo "$(FG_GREEN)Connect to $(FG_WHITE)$(UNDERLINE)https://localhost$(RESET)"
 
 re:
 	@echo "$(FG_GREEN)Restarted$(RESET)"
-	@$(MAKE) fclean
+	@$(MAKE) clean
 	@$(MAKE) all
 
 log:
 	@echo "📄 $(FG_CYAN)Logs$(RESET) 📄"
-	@docker-compose -f docker-compose.yml logs -f
+	@docker compose -p transcendence -f docker-compose.yml logs -f
 
 clean:
 	@$(MAKE) down
 	@docker system prune -af --volumes
 	@echo "🧹 $(FG_BLUE)Cleaned up$(RESET) 🧹"
 
-fclean:
-	@$(MAKE) down
-	@docker system prune -af --volumes
-	@docker volume rm transcendence_db_data
-	@echo "🧹 $(FG_BLUE)Fully cleaned up$(RESET) 🧹"
-
 populatedb:
 	@docker exec -it backend python manage.py populatedb
 
-.PHONY: all build up down stop start re log clean fclean populatedb
+.PHONY: all build up down stop start re log clean populatedb
 
