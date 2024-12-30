@@ -9,15 +9,19 @@ from datetime import datetime, timedelta
 import requests
 import jwt
 import secrets
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
+@ensure_csrf_cookie
 @api_view(["GET"])
 def login(request):
     oauth_url = settings.OAUTH_URL
     redirect_uri = settings.OAUTH_REDIRECT_URI
     client_id = settings.OAUTH_CLIENT_ID
     state = settings.OAUTH_STATE  # CSRF 방지용 랜덤 문자열
-    return redirect(f"{oauth_url}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&state={state}")
+    return redirect(
+        f"{oauth_url}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&state={state}"
+    )
 
 
 @api_view(["POST"])
@@ -75,7 +79,10 @@ def get_acccess_token(code):
 
 
 def get_user_info(access_token):
-    user_info_response = requests.get(settings.OAUTH_USER_INFO_URL, headers={"Authorization": f"Bearer {access_token}"})
+    user_info_response = requests.get(
+        settings.OAUTH_USER_INFO_URL,
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
     if user_info_response.status_code == 200:
         return user_info_response.json()
     return None
@@ -228,10 +235,7 @@ def verify_otp(request):
 def verify_jwt(request):
     payload = decode_jwt(request)
     if not payload:
-        return Response(status=401)
+        return Response({"error": "Invalid JWT"}, status=401)
 
     is_verified = payload.get("is_verified")
-    if is_verified == True:
-        return Response(status=200)
-    else:
-        return Response(status=401)
+    return Response(status=200 if is_verified else 401)
