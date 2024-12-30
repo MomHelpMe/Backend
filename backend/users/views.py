@@ -14,6 +14,7 @@ from .serializers import (
 from login.views import decode_jwt
 from drf_yasg.utils import swagger_auto_schema
 from game.onlineConsumers import OnlineConsumer
+from django.utils.html import escape
 
 
 class UserDetailView(APIView):
@@ -36,6 +37,8 @@ class UserDetailView(APIView):
         # FIXME: is_online도 변경이 가능함 수정 필요
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
+            serializer.validated_data['nickname'] = escape(serializer.validated_data['nickname'])
+            serializer.validated_data['img_url'] = escape(serializer.validated_data['img_url'])
             serializer.save()
             return JsonResponse(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
