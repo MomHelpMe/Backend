@@ -1,3 +1,15 @@
+<!-- 
+재현 방법
+
+django에서 set_cookie("jwt", token, httponly=False, secure=True, samesite=None)로 쿠키 설정
+-->
+
+<!-- 
+방어 방법
+1. set_cookie할 때 js로 쿠키를 읽을 수 없도록 httponly=True, csrf 방어를 위해 samesite=Lax 설정
+2. csrf token을 사용하여 요청을 검증 (이거 어떻게 하지?)
+-->
+
 <!DOCTYPE html>
 <html>
   <head>
