@@ -108,7 +108,7 @@ export class GameResultPage extends Component {
 						}
 					})
 					.catch(error => {
-						console.error("Error sending tournament results:", error);
+						// console.error("Error sending tournament results:", error);
 						changeUrl("/");
 					});
 					changeUrl("/main/tournament");

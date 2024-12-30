@@ -76,17 +76,17 @@ export class TournamentHistory extends Component {
 
 	setEvent(){
 		this.addEvent('click', '#tournament-prev-button', (event) => {
-			console.log("prev");
-			console.log(this.state.idx);
+			// console.log("prev");
+			// console.log(this.state.idx);
 			if (this.state.idx > 0) this.state.idx--;
-			console.log(this.state.idx);
+			// console.log(this.state.idx);
 		});
 
 		this.addEvent('click', '#tournament-next-button', (event) => {
-			console.log("next");
-			console.log(this.state.idx);
+			// console.log("next");
+			// console.log(this.state.idx);
 			if (this.state.idx < this.size) this.state.idx++;
-			console.log(this.state.idx);
+			// console.log(this.state.idx);
 		});
 	}
 }

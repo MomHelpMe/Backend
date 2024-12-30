@@ -14,7 +14,7 @@ from django.utils import timezone
 
 SCREEN_HEIGHT = 750
 SCREEN_WIDTH = 1250
-MAX_SCORE = 10
+MAX_SCORE = 25
 
 
 @sync_to_async
@@ -41,6 +41,7 @@ def get_user_nicknames(user1, user2):
 class MatchingGameState:
     async def initialize(self, user1, user2):
         try:
+            self.game_state = 0 # 0: in game, 1: game over
             self.user = [user1, user2]
             self.user_authenticated = [False, False]
             self.map = GameMap()
@@ -173,9 +174,9 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
                     # 누가 남았는지 판별 (내가 0이라면 1이 승자, 내가 1이라면 0이 승자)
                     winner_index = 1 - self.user_index  
                     state = MatchingGameConsumer.game_states[self.room_group_name]
-
-                    # send_game_result를 통해 DB에 게임결과 저장 및
-                    # 나머지(승자)에게 게임 종료 메시지 전송
+                    if (state.game_state != 0):
+                        return
+                    await asyncio.sleep(0.1)
                     await self.send_game_result(winner_index)
                     await asyncio.sleep(0.1)
                     await self.close()
@@ -266,6 +267,7 @@ class MatchingGameConsumer(AsyncWebsocketConsumer):
 
     async def send_game_result(self, winner):
         state = MatchingGameConsumer.game_states[self.room_group_name]
+        state.game_state = 1
 
         print("Game result for", self.room_group_name, ":", state.score, "Winner:", winner)
         await self.save_game_result(state, winner)

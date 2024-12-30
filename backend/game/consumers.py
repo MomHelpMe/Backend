@@ -10,7 +10,7 @@ from channels.exceptions import DenyConnection
 
 SCREEN_HEIGHT = 750
 SCREEN_WIDTH = 1250
-MAX_SCORE = 150
+MAX_SCORE = 25
 
 
 class GameState:

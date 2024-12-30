@@ -24,10 +24,10 @@ const online = async (socketList) => {
 
     onlineSocket.onopen = () => {
         onlineSocket.send(JSON.stringify({ action: 'authenticate', token }));
-        console.log("online socket opened");
+        // console.log("online socket opened");
     };
     onlineSocket.onclose = () => {
-        console.log("online socket closed");
+        // console.log("online socket closed");
         closeAllSockets(socketList);
         changeUrl("/error", false);
     };
@@ -40,8 +40,9 @@ export const showLoading = async (routes, socketList) => {
     
     await Promise.all([
         initializeRouter(routes),
-        parsePath(window.location.pathname),
-        changeUrl("/main", false)
+        // parsePath(window.location.pathname),
+        // changeUrl("/main", false),
+        parsePath("/main"),
     ]);
     setTimeout(async () => {
         await online(socketList);

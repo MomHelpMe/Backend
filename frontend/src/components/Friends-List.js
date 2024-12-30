@@ -92,7 +92,7 @@ export class FriendsList extends Component {
 				{ className: "fList", ids: friendIdList, contents: friendNicknameList }));
 		})
 		.catch(error => {
-			console.error('Fetch error:', error);
+			// console.error('Fetch error:', error);
 			changeUrl("/");
 		});
 	}
@@ -144,7 +144,7 @@ export class FriendsList extends Component {
 			if (part.length !== 2)
 			{
 				// 올바르지 않은 입력입니다!
-				console.log("invalid input!");
+				// console.log("invalid input!");
 				return ;
 			} 
 			const nickname = part[0];
@@ -152,14 +152,14 @@ export class FriendsList extends Component {
 
 			if (!this.users)
 			{
-				console.log("user is not loaded!");
+				// console.log("user is not loaded!");
 				return ;
 			}
 			const isFriend = this.friends.find(friend => friend.user_id === uid);
 			const isUser = this.users.find(user => user.user_id === uid);
 			if (isFriend || !isUser || isUser.nickname !== nickname)
 			{
-				console.log("invalid input!");
+				// console.log("invalid input!");
 			}
 			else
 			{
@@ -179,7 +179,7 @@ export class FriendsList extends Component {
 					changeUrl(window.location.pathname);
 				})
 				.catch(error => {
-					console.error('Fetch error:', error);
+					// console.error('Fetch error:', error);
 					changeUrl("/");
 				});
 			}
@@ -229,7 +229,7 @@ export class FriendsList extends Component {
 				});
 			})
 			.catch(error => {
-				console.error('Fetch error:', error);
+				// console.error('Fetch error:', error);
 				changeUrl("/");
 			});
 		})
@@ -263,7 +263,7 @@ export class FriendsList extends Component {
 				changeUrl(window.location.pathname);
 			})
 			.catch(error => {
-				console.error('Fetch error:', error);
+				// console.error('Fetch error:', error);
 				changeUrl("/");
 			});
 		});

@@ -80,7 +80,7 @@ export class EditProfile extends Component {
 			this.state.is_2FA = data.is_2FA;
 		})
 		.catch(error => {
-			console.error('Fetch error:', error);
+			// console.error('Fetch error:', error);
 			changeUrl("/");
 		});
 		return { nickname: this.nickname, img_url: this.img_url, is_2FA: this.is_2FA };
@@ -186,7 +186,7 @@ export class EditProfile extends Component {
 				else throw new Error('Network response was not ok');
 			})
 			.catch(error => {
-				console.error('Fetch error:', error);
+				// console.error('Fetch error:', error);
 				changeUrl("/");
 			});
 		});
@@ -215,7 +215,7 @@ export class EditProfile extends Component {
 				if (response.ok) {
 					return response.json();
 				} else {
-					console.error('Failed to update profile. Status:', response.status);
+					// console.error('Failed to update profile. Status:', response.status);
 					throw new Error('Failed to update profile');
 				}
 			})
@@ -223,7 +223,7 @@ export class EditProfile extends Component {
 				changeUrl(`/main/profile/${this.props.uid}/edit`);
 			})
 			.catch(error => {
-				console.error('Fetch error:', error);
+				// console.error('Fetch error:', error);
 				changeUrl("/");
 			});
 		});

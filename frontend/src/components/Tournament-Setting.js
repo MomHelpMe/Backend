@@ -77,7 +77,7 @@ export class TournamentSetting extends Component {
 			  });
 		})
 		.catch(error => {
-			console.error("Error fetching tournament history:", error);
+			// console.error("Error fetching tournament history:", error);
 			this.games = {}; // 오류 발생 시 기본값 설정
 		});
 		
@@ -85,7 +85,7 @@ export class TournamentSetting extends Component {
 			this.games[date] = JSON.parse(this.games[date]);
 		}
 
-		console.log(this.games);
+		// console.log(this.games);
 
 		return `
 			<div id="tournament-box">

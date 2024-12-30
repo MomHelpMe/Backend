@@ -38,13 +38,13 @@ export class GameTournamentCore extends Component {
 		let counter = 0;
 		let leftBar, rightBar, leftBall, rightBall, map, score, penaltyTime = [0, 0];
 
-		console.log(canvas)
+		// console.log(canvas)
 		function playSound(soundName) {
 			var sound = sounds[soundName];
 			if (sound) {
 				sound.currentTime = 0;
 				sound.play().catch(function (error) {
-					console.log('Autoplay was prevented:', error);
+					// console.log('Autoplay was prevented:', error);
 				});
 			}
 		}
@@ -336,8 +336,8 @@ export class GameTournamentCore extends Component {
 			} else if (data.type === 'game_result') {
 				this.gameSocket.close();
 				socketList.pop();
-				console.log("winner!!");
-				console.log(data.winner);
+				// console.log("winner!!");
+				// console.log(data.winner);
 				const winner = data.winner === 0 ? this.props.player1 : this.props.player2;
 				const loser = data.winner === 0 ? this.props.player2 : this.props.player1;
 				if (this.props.game === 1) {
@@ -437,7 +437,7 @@ export class GameTournamentCore extends Component {
 			rightBall = new Ball(data.right_ball_x, data.right_ball_y, BALL_RADIUS, BALL_COLOR[1]);
 			score = new Score();
 
-			console.log(SCREEN_HEIGHT, SCREEN_WIDTH, BAR_HEIGHT, BAR_WIDTH, BALL_RADIUS);
+			// console.log(SCREEN_HEIGHT, SCREEN_WIDTH, BAR_HEIGHT, BAR_WIDTH, BALL_RADIUS);
 			setInterval(interpolate, 3);
 		}
 
