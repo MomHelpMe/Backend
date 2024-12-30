@@ -14,7 +14,7 @@ from django.utils import timezone
 
 SCREEN_HEIGHT = 750
 SCREEN_WIDTH = 1250
-MAX_SCORE = 10
+MAX_SCORE = 25
 
 
 @sync_to_async
