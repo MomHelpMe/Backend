@@ -60,7 +60,7 @@ export class TournamentSetting extends Component {
 
 		const translations = this.translations;
 
-		fetch("https://localhost:443/api/game-history/tournament", {
+		fetch("https://10.31.5.2/api/game-history/tournament", {
 			method: "GET",
 			credentials: "include", // 쿠키 포함
 		})

@@ -68,7 +68,7 @@ export class Menu extends Component {
 		});
 
 		function storeLang(value) {
-			fetch("https://localhost:443/api/language/", {
+			fetch("https://10.31.5.2/api/language/", {
 				method: 'PUT',
 				credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
 				headers: {
@@ -112,7 +112,7 @@ export class Menu extends Component {
 
 		this.addEvent('click', '#Logout', () => {
 			// API !! ME POST
-			fetch("https://localhost:443/api/me/", {
+			fetch("https://10.31.5.2/api/me/", {
 				method: 'POST',
 				credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
 			})

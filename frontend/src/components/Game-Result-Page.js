@@ -94,7 +94,7 @@ export class GameResultPage extends Component {
 						})
 					};
 
-					fetch("https://localhost:443/api/game-history/tournament", {
+					fetch("https://10.31.5.2/api/game-history/tournament", {
 						method: 'POST',
 						credentials: 'include', // 쿠키를 포함하여 요청
 						headers: {

@@ -2,7 +2,7 @@ import { initializeRouter, changeUrl, parsePath } from "./router.js";
 import { getCookie } from "./jwt.js";
 import { createLoadingElement, addLoadingStyles } from "./loadingComponents.js";
 
-const WEBSOCKET_URL = 'wss://localhost:443/ws/online/';
+const WEBSOCKET_URL = 'wss://10.31.5.2/ws/online/';
 
 export const closeAllSockets = (socketList) => {
     socketList.forEach(socket => {

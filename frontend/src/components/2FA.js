@@ -54,7 +54,7 @@ export class TwoFA extends Component {
 
 		this.addEvent('click', '#resendButton', () => {
 			// resend msg 전송
-			fetch('https://localhost:443/api/send-mail/', {
+			fetch('https://10.31.5.2/api/send-mail/', {
 				method: 'GET',
 				credentials: 'include', // 쿠키를 포함하여 요청
 			})
@@ -77,7 +77,7 @@ export class TwoFA extends Component {
 			}
 			
 			// API code 일치 확인 요청
-			fetch('https://localhost:443/api/verify-otp/', {
+			fetch('https://10.31.5.2/api/verify-otp/', {
 				method: 'POST',
 				credentials: 'include', // 쿠키를 포함하여 요청
 				headers: {
@@ -93,7 +93,7 @@ export class TwoFA extends Component {
 				if (data) {
 					if (data.success) {
 						// API!!! jwt가 있으면 해당 유저의 데이터베이스에서 언어 번호 (0 or 1 or 2) 얻어오기
-						fetch("https://localhost:443/api/language/", {
+						fetch("https://10.31.5.2/api/language/", {
 							method: 'GET',
 							credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
 						})
