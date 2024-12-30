@@ -88,7 +88,7 @@ export async function parsePath(path) {
 	if (urlParams.has('code')) {
 		const code = urlParams.get('code');
 
-		console.log("code:" + code);
+		// console.log("code:" + code);
 		try {
 			const response = await postRequest('/callback/', { code });
 
@@ -112,7 +112,7 @@ export async function parsePath(path) {
 
 					const langData = await langResponse.json();
 					if (langData) {
-						console.log(langData.language);
+						// console.log(langData.language);
 						root.lan.value = langData.language;
 						changeUrl('/main');
 						return null;
@@ -122,7 +122,7 @@ export async function parsePath(path) {
 				return changeUrl("/", false);
 			}
 		} catch (error) {
-			console.error('Error:', error);
+			// console.error('Error:', error);
 			return changeUrl("/error");
 		}
 	}
@@ -135,7 +135,7 @@ export async function parsePath(path) {
 			return changeUrl("/", false);  // /를 제외한 다른 경로로 이동할 때 인증되지 않은 경우 /로 이동, replaceState 사용
 		}
 	} catch (error) {
-		console.error('Error:', error);
+		// console.error('Error:', error);
 		return changeUrl("/error");
 	}
 
@@ -151,7 +151,7 @@ export async function parsePath(path) {
 			keys.forEach((key, index) => {
 				props[key.substring(1)] = values[index];
 			});
-			console.log(props);
+			// console.log(props);
 			route.component(props);
 			return;
 		}

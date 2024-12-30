@@ -27,7 +27,7 @@ export class GameTournament extends GameDefault {
 		} else {
 			changeUrl("/main/tournament");
 		}
-		console.log(this.props);
+		// console.log(this.props);
 		new GameTournamentCore(document.querySelector("div#game"), this.props);
 	}
 }

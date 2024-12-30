@@ -36,7 +36,7 @@ export class ProfileInfo extends Component {
 	}
 	
 	initState() {
-		console.log(this.props.lan.value);
+		// console.log(this.props.lan.value);
 		const payload = parseJWT();
 		if (!payload) this.uid = null;
 		else this.uid = payload.id;
@@ -63,7 +63,7 @@ x				} else {
 						Math.round((data.user.win / (data.user.lose + data.user.win)) * 100);
 		})
 		.catch(error => {
-			console.error('Fetch error:', error);
+			// console.error('Fetch error:', error);
 			changeUrl("/");
 		});
 

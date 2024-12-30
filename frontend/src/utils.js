@@ -34,7 +34,7 @@ export async function getRequest(endpoint) {
     });
     return response;
   } catch (error) {
-    console.error("Error:", error);
+    // console.error("Error:", error);
     return null;
   }
 }
@@ -58,7 +58,7 @@ export async function postRequest(endpoint, body) {
     });
     return response;
   } catch (error) {
-    console.error("Error:", error);
+    // console.error("Error:", error);
     return null;
   }
 }

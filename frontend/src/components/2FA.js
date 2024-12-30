@@ -120,7 +120,7 @@ export class TwoFA extends Component {
 				}
 			})
 			.catch(error => {
-				console.error('Error:', error);
+				// console.error('Error:', error);
 			});
 		});
 	}

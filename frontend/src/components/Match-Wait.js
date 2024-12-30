@@ -8,13 +8,17 @@ export class WaitForMatch extends Component {
 	initState() {
 		if (socketList[0] !== undefined) {
 			setTimeout(() => {
-				console.log("send enter-matching");
+				if (window.location.pathname !== "/main/matching") {
+					// console.log("cancel enter-matching");
+					return;
+				}
+				// console.log("send enter-matching");
 				socketList[0].send(JSON.stringify({ 'action': 'enter-matching' }));
 				socketList[0].onmessage = (e) => {
 					const data = JSON.parse(e.data);
-					console.log(data);
+					// console.log(data);
 					if (data.action === 'start_game') {
-						console.log("start game on " + data.room_name);
+						// console.log("start game on " + data.room_name);
 						changeUrl('/game/vs/' + data.room_name);
 					}
 				};
@@ -71,7 +75,7 @@ export class WaitForMatch extends Component {
 
 	setEvent() {
 		this.addEvent('click', '#goBack', (event) => {
-			console.log("send leave-matching");
+			// console.log("send leave-matching");
 			if (socketList[0] !== undefined)
 				socketList[0].send(JSON.stringify({ 'action': 'leave-matching' }));
 			window.removeEventListener('popstate', handleSocketClose);
@@ -79,7 +83,7 @@ export class WaitForMatch extends Component {
 		});
 
 		const handleSocketClose = (e) => {
-			console.log("send leave-matching");
+			// console.log("send leave-matching");
 			if (socketList[0] !== undefined)
 				socketList[0].send(JSON.stringify({ 'action': 'leave-matching' }));
 			window.removeEventListener('popstate', handleSocketClose);
