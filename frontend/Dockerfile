@@ -15,7 +15,7 @@ RUN npm install && \
 COPY . .
 
 # 6. Vite 서버를 실행합니다.
-CMD ["npm", "run", "dev"]
+CMD ["sh", "-c", "npm run build && cp -r img dist/img && npm run preview"]
 
 # 7. 컨테이너가 노출할 포트를 설정합니다.
 EXPOSE 5173

@@ -12,7 +12,7 @@ export class GameTournamentCore extends Component {
 		this.keysPressed = {};
 		this.gameSocket = new WebSocket(
 			'wss://'
-			+ "localhost:443"
+			+ "10.31.5.2"
 			+ '/ws/game/'
 			+ this.props.uid
 			+ '/'

@@ -12,7 +12,7 @@ export class GameMatchingCore extends Component {
 		this.keysPressed = {};
 		this.gameSocket = new WebSocket(
 			'wss://'
-			+ "localhost:443"
+			+ "10.31.5.2"
 			+ '/ws/game/vs/'
 			+ this.props.room
 			+ '/'

@@ -45,7 +45,7 @@ export class ProfileInfo extends Component {
 		this.rate = null;
 		this.games = null;
 
-		fetch(`https://localhost:443/api/user/${this.props.uid}`, {
+		fetch(`https://10.31.5.2/api/user/${this.props.uid}`, {
 			method: 'GET',
 			credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
 		})

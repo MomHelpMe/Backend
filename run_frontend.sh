@@ -3,4 +3,4 @@
 
 cp .env.local .env
 
-cd frontend && npm install && npm run dev
+cd frontend && npm install && npm run build && cp -r img dist/img && npm run preview

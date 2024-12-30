@@ -100,24 +100,25 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# CORS_ORIGIN_ALLOW_ALL = True  # TEST: 모든 도메인 허용 (보안 취약)
+CORS_ORIGIN_ALLOW_ALL = True
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://10.31.5.2",
     "https://localhost:443",
+    "https://localhost:5173",
 ]
-
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = "Lax"
 
 ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOWED_ORIGINS = [
+    "https://10.31.5.2",
     "https://localhost:443",
+    "https://localhost:5173",
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # 쿠키 허용
 
-SESSION_COOKIE_HTTPONLY = True  # 쿠키를 HTTP로만 전송
+# SESSION_COOKIE_HTTPONLY = True  # 쿠키를 HTTP로만 전송
 
 ROOT_URLCONF = "transcendence.urls"
 
