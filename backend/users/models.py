@@ -9,8 +9,8 @@ class User(models.Model):
     ]
 
     user_id = models.IntegerField(primary_key=True)
-    nickname = models.CharField(max_length=255)
-    email = models.EmailField(max_length=255)
+    nickname = models.CharField(max_length=12)
+    email = models.EmailField(max_length=255 )
     img_url = models.URLField(blank=True)
     is_2FA = models.BooleanField(default=False)
     is_online = models.BooleanField(default=False)
