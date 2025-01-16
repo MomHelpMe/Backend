@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 # TEST: 개발 시 로컬 실행용
 
+cd "$(dirname "$0")/.."
 cp .env.local .env
-
 cd frontend && npm install && npm run build && cp -r img dist/img && npm run preview

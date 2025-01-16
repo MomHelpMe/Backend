@@ -1,16 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 
 # TEST: 개발 시 로컬 실행용
+cd "$(dirname "$0")/.."
 cp .env.local .env
 
 # Initialize the environment (arg 1 to clear everything)
 if [ "$1" == "1" ]; then
-  ./clean.sh
+  ./scripts/clean
 fi
 
 # Run the web server
 if [ -z "$(docker ps -aq -f name=nginx)" ]; then
-  sh nginx/make_config.sh local
+  sh nginx/make_config local
   docker build -t nginx nginx/
   docker run -d -p 443:443 --name nginx nginx
 fi
@@ -22,7 +23,7 @@ if [ -z "$(docker ps -aq -f name=postgres)" ]; then
   docker run -d -p 5432:5432 --name postgres --env-file .env -v transcendence_db_data:/var/lib/postgresql/data postgres
 fi
 
-ENV_DIR="venv"
+ENV_DIR=".venv"
 DOT_ENV_FILE=".env"
 
 cd backend

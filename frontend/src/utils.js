@@ -1,4 +1,4 @@
-export const API_BASE_URL = "https://10.31.5.2/api";
+export const API_BASE_URL = "https://localhost/api";
 
 // https://docs.djangoproject.com/en/5.1/howto/csrf/#using-csrf-protection-with-ajax
 function getCookie(name) {

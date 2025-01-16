@@ -4,75 +4,87 @@ import { MatchList } from "./Profile-List.js";
 import { parseJWT } from "../core/jwt.js";
 
 export class ProfileInfo extends Component {
-	
-	translate() {
-		const languages = {
-			0: {
-				headText: "Profile",
-				winText: "Win",
-				loseText: "Lose",
-				minText: "min",
-				editText: "edit",
-				dateText: "Date"
-			},
-			1: {
-				headText: "프로필",
-				winText: "승리",
-				loseText: "패배",
-				minText: "분",
-				editText: "수정",
-				dateText: "날짜"
-			},
-			2: {
-				headText: "プロフィール",
-				winText: "勝ち",
-				loseText: "負け",
-				minText: "分",
-				editText: "編集",
-				dateText: "日付"
-			}
-		};
-		this.translations = languages[this.props.lan.value];
-	}
-	
-	initState() {
-		// console.log(this.props.lan.value);
-		const payload = parseJWT();
-		if (!payload) this.uid = null;
-		else this.uid = payload.id;
+  translate() {
+    const languages = {
+      0: {
+        headText: "Profile",
+        winText: "Win",
+        loseText: "Lose",
+        minText: "min",
+        editText: "edit",
+        dateText: "Date",
+      },
+      1: {
+        headText: "프로필",
+        winText: "승리",
+        loseText: "패배",
+        minText: "분",
+        editText: "수정",
+        dateText: "날짜",
+      },
+      2: {
+        headText: "プロフィール",
+        winText: "勝ち",
+        loseText: "負け",
+        minText: "分",
+        editText: "編集",
+        dateText: "日付",
+      },
+    };
+    this.translations = languages[this.props.lan.value];
+  }
 
-		this.user = {win: null, lose: null, img_url: null, nickname: null, uid: null};
-		this.rate = null;
-		this.games = null;
+  initState() {
+    // console.log(this.props.lan.value);
+    const payload = parseJWT();
+    if (!payload) this.uid = null;
+    else this.uid = payload.id;
 
-		fetch(`https://10.31.5.2/api/user/${this.props.uid}`, {
-			method: 'GET',
-			credentials: 'include', // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
-		})
-		.then(response => {
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
-x				} else {
-				return response.json();
-			}
-		})
-		.then(data => {
-			this.state.games = data.games;
-			this.state.user = data.user;
-			this.state.rate = data.user.lose == 0 ? (data.user.win == 0 ? 0 : 100) :
-						Math.round((data.user.win / (data.user.lose + data.user.win)) * 100);
-		})
-		.catch(error => {
-			// console.error('Fetch error:', error);
-			changeUrl("/");
-		});
+    this.user = {
+      win: null,
+      lose: null,
+      img_url: null,
+      nickname: null,
+      uid: null,
+    };
+    this.rate = null;
+    this.games = null;
 
-		return { user: this.user, rate: this.rate, games: this.games };
-	}
+    fetch(`https://localhost/api/user/${this.props.uid}`, {
+      method: "GET",
+      credentials: "include", // 쿠키를 포함하여 요청 (사용자 인증 필요 시)
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+          x;
+        } else {
+          return response.json();
+        }
+      })
+      .then((data) => {
+        this.state.games = data.games;
+        this.state.user = data.user;
+        this.state.rate =
+          data.user.lose == 0
+            ? data.user.win == 0
+              ? 0
+              : 100
+            : Math.round(
+                (data.user.win / (data.user.lose + data.user.win)) * 100
+              );
+      })
+      .catch((error) => {
+        // console.error('Fetch error:', error);
+        changeUrl("/");
+      });
 
-	template () {
-		const translations = this.translations;
-		return `
+    return { user: this.user, rate: this.rate, games: this.games };
+  }
+
+  template() {
+    const translations = this.translations;
+    return `
 			<div id="profileBox">
 				<img src="/img/back.png" id="goBack"></img>
 				<div id="profile">
@@ -82,15 +94,21 @@ x				} else {
 						</div>
 						<div id="userInfo">
 							<div id="profile-edit">
-								${parseInt(this.props.uid) === this.uid ? `<div id="profile-edit-button">${translations.editText}</div>` : ""}
+								${
+                  parseInt(this.props.uid) === this.uid
+                    ? `<div id="profile-edit-button">${translations.editText}</div>`
+                    : ""
+                }
 							</div>
 							<div id="profileUserName">
 								<span id="profileNick">${this.state.user.nickname}</span>
 							</div>
 							<div id="profileImgBox">
-								${this.state.user.img_url === "" ?
-									`<img id="profileImg" src="/img/friends.png"></img>` :
-									`<img id="profileImg" src="${this.state.user.img_url}"></img>`}
+								${
+                  this.state.user.img_url === ""
+                    ? `<img id="profileImg" src="/img/friends.png"></img>`
+                    : `<img id="profileImg" src="${this.state.user.img_url}"></img>`
+                }
 							</div>
 						</div>
 					</div>
@@ -103,8 +121,12 @@ x				} else {
 									<div id="percentage"></div>
 								</div>
 								<div id="winStat">
-									<span id="win">${translations.winText} </span><span id="winNum">${this.state.user.win}</span>
-									<span id="lose">${translations.loseText} </span><span id="loseNum">${this.state.user.lose}</span>
+									<span id="win">${translations.winText} </span><span id="winNum">${
+      this.state.user.win
+    }</span>
+									<span id="lose">${translations.loseText} </span><span id="loseNum">${
+      this.state.user.lose
+    }</span>
 									<span id="rate">(${this.state.rate}%)</span>
 								</div>
 							</div>
@@ -119,59 +141,62 @@ x				} else {
 				</div>
 			</div>
 		`;
-	}
+  }
 
-	mounted() {
-		new MatchList(document.querySelector("ul#matches"), { matches: this.state.games, minText: this.translations.minText, dateText: this.translations.dateText });
-		this.drawBackgroundCircle();
-		this.drawProgressCircle();
-		this.updatePercentage();
-	}
+  mounted() {
+    new MatchList(document.querySelector("ul#matches"), {
+      matches: this.state.games,
+      minText: this.translations.minText,
+      dateText: this.translations.dateText,
+    });
+    this.drawBackgroundCircle();
+    this.drawProgressCircle();
+    this.updatePercentage();
+  }
 
-	setEvent() {
-		this.addEvent('click', '#goBack', () => {
-			changeUrl("/main");
-		});
+  setEvent() {
+    this.addEvent("click", "#goBack", () => {
+      changeUrl("/main");
+    });
 
-		this.addEvent('click', '.opNick', (event) => {
-			changeUrl(`/main/profile/${event.target.id}`);
-		});
+    this.addEvent("click", ".opNick", (event) => {
+      changeUrl(`/main/profile/${event.target.id}`);
+    });
 
-		this.addEvent('click', '#profile-edit', () => {
-			changeUrl(`/main/profile/${this.props.uid}/edit`);
-		});
+    this.addEvent("click", "#profile-edit", () => {
+      changeUrl(`/main/profile/${this.props.uid}/edit`);
+    });
+  }
 
-	}
+  drawBackgroundCircle() {
+    const canvas = document.getElementById("backgroundCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	drawBackgroundCircle() {
-		const canvas = document.getElementById('backgroundCanvas');
-		const ctx = canvas.getContext('2d');
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw the background circle
+    ctx.beginPath();
+    ctx.arc(100, 100, 90, 0, 2 * Math.PI);
+    ctx.lineWidth = 20;
+    ctx.strokeStyle = "#e74c3c";
+    ctx.stroke();
+  }
 
-		// Draw the background circle
-		ctx.beginPath();
-		ctx.arc(100, 100, 90, 0, 2 * Math.PI);
-		ctx.lineWidth = 20;
-		ctx.strokeStyle = '#e74c3c';
-		ctx.stroke();
-	}
+  drawProgressCircle() {
+    const canvas = document.getElementById("progressCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	drawProgressCircle() {
-		const canvas = document.getElementById('progressCanvas');
-		const ctx = canvas.getContext('2d');
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const startAngle = 1.5 * Math.PI;
+    const endAngle = startAngle + 2 * Math.PI * (this.state.rate / 100);
 
-		const startAngle = 1.5 * Math.PI;
-		const endAngle = startAngle + (2 * Math.PI * (this.state.rate / 100));
+    ctx.beginPath();
+    ctx.arc(100, 100, 90, startAngle, endAngle);
+    ctx.lineWidth = 20;
+    ctx.strokeStyle = "#4074e0";
+    ctx.stroke();
+  }
 
-		ctx.beginPath();
-		ctx.arc(100, 100, 90, startAngle, endAngle);
-		ctx.lineWidth = 20;
-		ctx.strokeStyle = '#4074e0';
-		ctx.stroke();
-	}
-
-	updatePercentage() {
-		document.getElementById('percentage').innerText = `${this.state.rate}%`;
-	}
+  updatePercentage() {
+    document.getElementById("percentage").innerText = `${this.state.rate}%`;
+  }
 }

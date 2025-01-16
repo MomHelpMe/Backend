@@ -103,17 +103,15 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://10.31.5.2",
     "https://localhost:443",
-    "https://localhost:5173",
+    "http://localhost:5173",
 ]
 
 ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://10.31.5.2",
     "https://localhost:443",
-    "https://localhost:5173",
+    "http://localhost:5173",
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # 쿠키 허용

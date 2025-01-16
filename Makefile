@@ -27,8 +27,8 @@ BG_DEFAULT		:= \033[49m
 
 RESET 			:= \033[0m
 
-all: 
-	@sh nginx/make_config.sh
+all:
+	@sh nginx/make_config
 	@cp .env.production ./frontend/.env
 	@cp .env.production ./backend/.env
 	@cp .env.production .env

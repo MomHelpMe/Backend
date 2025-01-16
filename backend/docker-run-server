@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -f "requirements.txt" ]; then
     pip install -q --upgrade pip && pip install -q -r requirements.txt
