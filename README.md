@@ -1,6 +1,6 @@
 # Transcendence
 
-![game](./img/output.gif)
+![game](./img/game.gif)
 
 ## 프로젝트 설명
 
